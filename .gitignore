@@ -1,0 +1,45 @@
+.DS_Store
+
+# Xcode (the Swift prototype)
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+
+# Unity: generated, rebuilt on open
+ScrollyRoadUnity/[Ll]ibrary/
+ScrollyRoadUnity/[Tt]emp/
+ScrollyRoadUnity/[Oo]bj/
+ScrollyRoadUnity/[Ll]ogs/
+ScrollyRoadUnity/[Uu]ser[Ss]ettings/
+ScrollyRoadUnity/[Mm]emoryCaptures/
+ScrollyRoadUnity/[Rr]ecordings/
+ScrollyRoadUnity/.vs/
+ScrollyRoadUnity/.idea/
+ScrollyRoadUnity/.vscode/
+*.csproj
+*.sln
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Builds (iOS Xcode projects, Mac app, Android APKs)
+ScrollyRoadUnity/[Bb]uilds/
+ScrollyRoadUnity/[Bb]uild/
+*.apk
+*.aab
+*.ipa
+*.unitypackage
+
+# Signing secrets never go in the repo
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+
+# Unity scratch files
+ScrollyRoadUnity/.utmp/
