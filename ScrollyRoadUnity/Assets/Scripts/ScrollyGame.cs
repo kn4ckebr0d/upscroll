@@ -68,7 +68,7 @@ public partial class ScrollyGame : MonoBehaviour
     int toneStep;
     float lastBlipY;
 
-    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyBoard, -scrollyBoardDemo, -scrollyInterruptTest, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
+    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyPoster <dir>, -scrollyBoard, -scrollyBoardDemo, -scrollyInterruptTest, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
     // -scrollyShotDir <dir> -scrollyShots <n> -scrollyShotInterval <s> -scrollyShotDelay <s>
     bool autopilot;
     bool god;
@@ -1106,6 +1106,9 @@ public partial class ScrollyGame : MonoBehaviour
                     break;
                 case "-scrollyIcons":
                     new GameObject("Icons").AddComponent<CoroutineHost>().StartCoroutine(RenderIcons(next));
+                    break;
+                case "-scrollyPoster":
+                    new GameObject("Poster").AddComponent<CoroutineHost>().StartCoroutine(RenderPoster(next));
                     break;
                 case "-scrollyCatalog":
                     new GameObject("Catalog").AddComponent<CoroutineHost>().StartCoroutine(RenderCatalog(next));

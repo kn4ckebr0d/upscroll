@@ -42,6 +42,75 @@ public static class BuildScript
         PlayerSettings.productName = "UPSCROLL";
         var icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/AppIcon/AppIcon.png");
         if (icon != null) PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
+        ApplySplash();
+    }
+
+    /// The splash: our poster (rendered with -scrollyPoster, logo on top) instead of the Unity logo, with a slow
+    /// zoom. On iOS the launch screen shows the same poster, so the two blend into one.
+    static void ApplySplash()
+    {
+        const string path = "Assets/Splash/Splash.png";
+        var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+        if (importer == null) return;
+        if (importer.textureType != TextureImporterType.Sprite || importer.maxTextureSize != 4096 || importer.mipmapEnabled)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.maxTextureSize = 4096;
+            importer.mipmapEnabled = false;
+            importer.SaveAndReimport();
+        }
+        var poster = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        PlayerSettings.SplashScreen.show = true;
+        PlayerSettings.SplashScreen.showUnityLogo = false;
+        PlayerSettings.SplashScreen.background = poster;
+        PlayerSettings.SplashScreen.backgroundPortrait = poster;
+        PlayerSettings.SplashScreen.backgroundColor = new Color32(0x89, 0xFF, 0xFF, 0xFF);
+        PlayerSettings.SplashScreen.blurBackgroundImage = false;
+        PlayerSettings.SplashScreen.overlayOpacity = 0;
+        PlayerSettings.SplashScreen.animationMode = PlayerSettings.SplashScreen.AnimationMode.Custom;
+        PlayerSettings.SplashScreen.animationBackgroundZoom = 0.95f;
+        PlayerSettings.SplashScreen.animationLogoZoom = 1;
+        PlayerSettings.SplashScreen.logos = new[] { PlayerSettings.SplashScreenLogo.Create(2.5f, null) };   // nothing on top, just time to look
+
+        // iPhone launch screen: Unity's full-screen, aspect-fill image view. Unity can't export a texture that
+        // isn't readable (it writes a blank pixel), so the poster itself is copied in after the build.
+        PlayerSettings.iOS.SetiPhoneLaunchScreenType(iOSLaunchScreenType.ImageAndBackgroundRelative);
+        PlayerSettings.iOS.SetLaunchScreenImage(poster.texture, iOSLaunchScreenImageType.iPhonePortraitImage);
+    }
+
+    [UnityEditor.Callbacks.PostProcessBuild]
+    static void CopyLaunchPoster(BuildTarget target, string path)
+    {
+        if (target != BuildTarget.iOS || !File.Exists("Assets/Splash/Splash.png")) return;
+        File.Copy("Assets/Splash/Splash.png", Path.Combine(path, "LaunchScreen-iPhonePortrait.png"), true);
+
+        // Unity shows its empty game view as soon as the app starts, a dark gap until the engine draws its first
+        // frame. Keep the poster on top through that, and fade it once the game's own splash (the same poster) is up.
+        string file = Path.Combine(path, "Classes/UI/UnityAppController+ViewHandling.mm");
+        string code = File.ReadAllText(file);
+        const string shown = "    // make window visible only after we have set up initial controller we want to show\n    [_window makeKeyAndVisible];\n";
+        const string drawn = "    [UIView setAnimationsEnabled: YES];\n}\n\n#if UNITY_SUPPORT_ROTATION";
+        if (!code.Contains(shown) || !code.Contains(drawn))
+        {
+            Debug.LogWarning("[ScrollyRoad] Launch poster: Unity's startup code changed, the poster isn't held over the gap");
+            return;
+        }
+        code = code.Replace(shown, shown +
+            "    UIImageView* upscrollPoster = [[UIImageView alloc] initWithImage: [UIImage imageNamed: @\"LaunchScreen-iPhonePortrait.png\"]];\n" +
+            "    upscrollPoster.contentMode = UIViewContentModeScaleAspectFill;\n" +
+            "    upscrollPoster.frame = _window.bounds;\n" +
+            "    upscrollPoster.tag = 0x5C0;\n" +
+            "    [_window addSubview: upscrollPoster];\n");
+        code = code.Replace(drawn,
+            "    UIView* upscrollPoster = [_window viewWithTag: 0x5C0];\n" +
+            "    if (upscrollPoster)\n" +
+            "    {\n" +
+            "        [_window bringSubviewToFront: upscrollPoster];\n" +
+            "        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{\n" +
+            "            [UIView animateWithDuration: 0.25 animations: ^{ upscrollPoster.alpha = 0; } completion: ^(BOOL finished) { [upscrollPoster removeFromSuperview]; }];\n" +
+            "        });\n" +
+            "    }\n" + drawn);
+        File.WriteAllText(file, code);
     }
 
     static void Build(string path, BuildTarget target, BuildOptions options)
