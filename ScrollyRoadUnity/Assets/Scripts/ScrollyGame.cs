@@ -55,13 +55,20 @@ public partial class ScrollyGame : MonoBehaviour
     float climberFacing;   // 0 = facing you (title screen), 180 = facing the wall (climbing)
     int lastTouchCount;
     readonly HashSet<int> swipedTouches = new();
-    readonly HashSet<int> buttonTouches = new();
+    readonly Dictionary<int, HudButton> buttonTouches = new();   // finger -> the button it pressed
+
+    // A call, a notification or a system gesture took the fingers away mid-climb: everything is frozen
+    // until a finger touches the screen again (that touch grabs the wall), so nobody falls because of it.
+    bool interrupted;
+    int worldCullingMask;   // what the main camera draws (everything but the closet preview's layer)
+    float timeScaleBeforeInterrupt = 1;
+    GameObject interruptCard;
     float runBest;
     int bestAtStart;
     int toneStep;
     float lastBlipY;
 
-    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyBoard, -scrollyBoardDemo, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
+    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyBoard, -scrollyBoardDemo, -scrollyInterruptTest, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
     // -scrollyShotDir <dir> -scrollyShots <n> -scrollyShotInterval <s> -scrollyShotDelay <s>
     bool autopilot;
     bool god;
@@ -154,7 +161,38 @@ public partial class ScrollyGame : MonoBehaviour
 
     void OnApplicationPause(bool paused)
     {
-        if (paused) Progress.Save();
+        if (!paused) return;
+        Progress.Save();
+        Interrupt();
+    }
+
+    void OnApplicationFocus(bool focused)
+    {
+        if (!focused) Interrupt();
+    }
+
+    void Interrupt(bool force = false)
+    {
+        if (interrupted || phase != Phase.Playing) return;
+        if (!force && (autopilot || !Application.isMobilePlatform)) return;   // the Mac test build loses focus all the time
+        interrupted = true;
+        timeScaleBeforeInterrupt = Time.timeScale;
+        Time.timeScale = 0;
+        lastTouchCount = 0;   // the fingers the system took away don't count as letting go
+        pendingPull = 0;
+        buttonTouches.Clear();
+        swipedTouches.Clear();
+        fingers.Clear();
+        interruptCard.SetActive(true);
+        StartCoroutine(Pop((RectTransform)interruptCard.transform, 0.85f));
+    }
+
+    void Resume()
+    {
+        interrupted = false;
+        Time.timeScale = timeScaleBeforeInterrupt > 0 ? timeScaleBeforeInterrupt : 1;
+        interruptCard.SetActive(false);
+        Haptics.Tick(0.6f);
     }
 
     void Start()
@@ -171,6 +209,7 @@ public partial class ScrollyGame : MonoBehaviour
         BuildGround();
         climber = new GameObject("Climber").AddComponent<Climber>();
         BuildPreview();
+        worldCullingMask = cam.cullingMask;
         DressClimber();
         BuildHUD();
         ParseTestArguments();
@@ -182,7 +221,7 @@ public partial class ScrollyGame : MonoBehaviour
     {
         float dt = Mathf.Min(Time.deltaTime, 1f / 20f);
         HandleInput();
-        if (autopilot) RunAutopilot();
+        if (autopilot && !interrupted) RunAutopilot();
 
         switch (phase)
         {
@@ -301,8 +340,8 @@ public partial class ScrollyGame : MonoBehaviour
     void BuildGround()
     {
         var ground = new GameObject("Ground").transform;
-        Voxel.Box(ground, new Vector3(30, 0.4f, 16), 0x6CBF4B, new Vector3(0, -0.2f, -3));
-        Voxel.Box(ground, new Vector3(30, 3, 16), 0x7A5236, new Vector3(0, -1.9f, -3));
+        Voxel.Box(ground, new Vector3(30, 0.4f, 16), 0x6CBF4B, new Vector3(0, -0.2f, -3), castShadows: false);
+        Voxel.Box(ground, new Vector3(30, 3, 16), 0x7A5236, new Vector3(0, -1.9f, -3), castShadows: false);
         foreach (var p in new[] { new Vector2(-4.6f, -2.6f), new Vector2(5.4f, -1.2f), new Vector2(-6.8f, -0.4f), new Vector2(3.4f, -4.5f) })
             BuildTree(ground, new Vector3(p.x, 0, p.y), 0x4E9A34, 0x5DB043);
         Voxel.Box(ground, new Vector3(0.6f, 0.4f, 0.6f), 0x9E9E9E, new Vector3(-2.8f, 0.2f, -3.2f));
@@ -342,6 +381,8 @@ public partial class ScrollyGame : MonoBehaviour
 
     /// Builds rows around the camera in both directions (so falls and snap-backs never
     /// show gaps), drops the ones far away, and plans checkpoints, mobs and coins ahead.
+    readonly List<int> staleRows = new();
+
     void GenerateContent()
     {
         float focus = cameraFocusY;
@@ -350,10 +391,10 @@ public partial class ScrollyGame : MonoBehaviour
         for (int r = Mathf.Max(0, low); r <= high; r++)
             if (!rows.ContainsKey(r)) rows[r] = BuildRow(r);
 
-        var stale = new List<int>();
+        staleRows.Clear();
         foreach (var r in rows.Keys)
-            if (r < low - 3 || r > high + 3) stale.Add(r);
-        foreach (var r in stale)
+            if (r < low - 3 || r > high + 3) staleRows.Add(r);
+        foreach (var r in staleRows)
         {
             Destroy(rows[r]);
             rows.Remove(r);
@@ -366,6 +407,16 @@ public partial class ScrollyGame : MonoBehaviour
         CullHazards(bottom);
         CullObstacles(bottom);
         CullCoins(bottom);
+        CullCheckpoints(bottom);
+    }
+
+    void CullCheckpoints(float bottom)
+    {
+        // Never the one you stand on (the anchor): you can't fall below it.
+        int count = 0;
+        while (count < checkpoints.Count && checkpoints[count].Y < bottom && checkpoints[count].Y < anchorY - 0.01f) count++;
+        for (int i = 0; i < count; i++) Destroy(checkpoints[i].Node.gameObject);
+        checkpoints.RemoveRange(0, count);
     }
 
     GameObject BuildRow(int r)
@@ -395,9 +446,10 @@ public partial class ScrollyGame : MonoBehaviour
             else if (Voxel.Hash(r, c, 1) < theme.AccentChance) hex = theme.Accents[(int)(Voxel.Hash(r, c, 2) * theme.Accents.Length) % theme.Accents.Length];
 
             // Edge blocks sometimes stick out a bit for relief. The wall's front face is at z = 0.
+            // Inner blocks are flush with it, so their shadows could never show: they don't cast any.
             float depth = edge && Voxel.Hash(r, c, 3) < 0.5f ? 1.4f : 1f;
             float z = 1f - depth / 2f;
-            Voxel.Box(row, new Vector3(1, 1, depth), hex, new Vector3(c, r + 0.5f, z));
+            Voxel.Box(row, new Vector3(1, 1, depth), hex, new Vector3(c, r + 0.5f, z), castShadows: edge);
             // Where the wall steps in above, the exposed top gets grass or snow.
             if (Mathf.Abs(c) > above)
                 Voxel.Box(row, new Vector3(1.02f, 0.18f, depth + 0.02f), theme.Cap, new Vector3(c, r + 1.09f, z));
@@ -427,7 +479,7 @@ public partial class ScrollyGame : MonoBehaviour
         var theme = ThemeFor(planet * ZonesPerPlanet);
         bool surface = KindOfRow(r) == RowKind.PlanetSurface;
         uint ground = EffectFor(planet) == PlanetEffect.Ice ? theme.Cap : theme.Accents[0];   // snow on icy planets
-        Voxel.Box(row, new Vector3(30, 1, 16), surface ? ground : theme.Edge, new Vector3(0, r + 0.5f, -3));
+        Voxel.Box(row, new Vector3(30, 1, 16), surface ? ground : theme.Edge, new Vector3(0, r + 0.5f, -3), castShadows: false);
         if (surface)
         {
             var effect = EffectFor(planet);
@@ -506,19 +558,43 @@ public partial class ScrollyGame : MonoBehaviour
         float pull = 0;
         int down = 0;
         int driver = -1;
+        bool cancelled = false;
         pendingPull = 0;
+        if (interrupted)
+        {
+            // Frozen until a finger comes back; that finger grabs the wall again.
+            foreach (var touch in Touch.activeTouches)
+                if (touch.phase == TouchPhase.Began)
+                {
+                    Resume();
+                    break;
+                }
+            if (interrupted) return;
+        }
         float metersPerPixel = Tuning.ViewHeight / Mathf.Max(1, Screen.height);
         foreach (var touch in Touch.activeTouches)
         {
-            if (touch.phase == TouchPhase.Began && TryPressButton(touch.screenPosition, onRelease: false))
-                buttonTouches.Add(touch.touchId);
+            if (touch.phase == TouchPhase.Began)
+            {
+                var pressed = ButtonAt(touch.screenPosition);
+                if (pressed != null)
+                {
+                    buttonTouches[touch.touchId] = pressed;
+                    PressButton(pressed);
+                }
+            }
 
             if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
             {
                 swipedTouches.Remove(touch.touchId);
-                bool wasButton = buttonTouches.Remove(touch.touchId);
+                if (touch.phase == TouchPhase.Canceled) cancelled = true;
+                bool wasButton = buttonTouches.Remove(touch.touchId, out var button);
                 bool scrolled = (closetPanel.activeSelf && closetScroll.End(touch)) || (boardPanel.activeSelf && boardScroll.End(touch));   // a scroll isn't a tap
-                if (wasButton && !scrolled) TryPressButton(touch.screenPosition, onRelease: true);
+                if (wasButton && !scrolled)
+                {
+                    // Only a finger lifted (not one the system cancelled) on the button it pressed fires it.
+                    if (touch.phase == TouchPhase.Ended && CanTap(button, touch.screenPosition)) FireButton(button);
+                }
                 else if (touch.touchId == bookDragTouch) EndBookDrag(touch);
                 if (TutorialActive) TutorialTouchEnded(touch);
                 FingerLifted(touch.touchId);
@@ -526,7 +602,7 @@ public partial class ScrollyGame : MonoBehaviour
             }
             if (closetPanel.activeSelf) closetScroll.Drag(touch, canvasRect.localScale.y);
             if (boardPanel.activeSelf) boardScroll.Drag(touch, canvasRect.localScale.y);
-            if (buttonTouches.Contains(touch.touchId)) continue;
+            if (buttonTouches.ContainsKey(touch.touchId)) continue;
             if (closetPanel.activeSelf || boardPanel.activeSelf) continue;   // spinning, zooming or scrolling: not climbing
             if (bookPanel.activeSelf)
             {
@@ -549,7 +625,9 @@ public partial class ScrollyGame : MonoBehaviour
         if (down == 0)
         {
             awaitingRelease = false;
-            if (lastTouchCount > 0) Release();
+            // Fingers taken away by the system (a call, Control Center) aren't letting go.
+            if (lastTouchCount > 0 && cancelled) Interrupt(force: true);
+            else if (lastTouchCount > 0) Release();
         }
         lastTouchCount = down;
 
@@ -747,7 +825,6 @@ public partial class ScrollyGame : MonoBehaviour
         toneStep = 0;
         climber.Land();
         StartCoroutine(Pop(checkpoint.Node));
-        Progress.Save();
         if (checkpoint.IsLaunchPad)
         {
             if (EffectAt(checkpoint.Y - 1) == PlanetEffect.Boss)
@@ -760,12 +837,14 @@ public partial class ScrollyGame : MonoBehaviour
                 Debris.Burst(climber.transform.position + Vector3.up, 0xFFD54F, 24, 4f);
                 ShowBanner("BOSS BEATEN!", $"+{Tuning.BossReward} COINS");
             }
+            Progress.Save();
             StartCoroutine(LaunchSequence(checkpoint));
             return;
         }
         Synth.Instance.ZoneFanfare();
         Haptics.Success();
         ShowZoneStamp(checkpoint.Zone, collect: true);
+        Progress.Save();   // after the stamp, so a crash right now can't lose it
     }
 
     IEnumerator Pop(Transform node)
@@ -918,6 +997,11 @@ public partial class ScrollyGame : MonoBehaviour
                 case "-scrollyCatalog":
                     new GameObject("Catalog").AddComponent<CoroutineHost>().StartCoroutine(RenderCatalog(next));
                     break;
+                case "-scrollyInterruptTest":
+                    // Climbs on autopilot, then acts as if a phone call came in: everything should freeze.
+                    autopilot = true;
+                    new GameObject("InterruptTest").AddComponent<CoroutineHost>().StartCoroutine(InterruptForTest());
+                    break;
                 case "-scrollyBoard": ShowBoard(true); break;
                 case "-scrollyBoardDemo":
                     // The leaderboard with made-up players, to check it without the online service.
@@ -952,6 +1036,12 @@ public partial class ScrollyGame : MonoBehaviour
         // Runs on its own object so world resets (which stop the game's coroutines) don't interrupt it.
         if (shotDir != null)
             new GameObject("TestHarness").AddComponent<CoroutineHost>().StartCoroutine(TakeScreenshots(shotDir, shots, interval, delay));
+    }
+
+    IEnumerator InterruptForTest()
+    {
+        while (phase != Phase.Playing || ClimberY - anchorY < 4f) yield return null;
+        Interrupt(force: true);
     }
 
     IEnumerator TagTourForTest()

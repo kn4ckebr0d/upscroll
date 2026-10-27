@@ -46,11 +46,16 @@ public static class Haptics
 
 #if UNITY_ANDROID && !UNITY_EDITOR
     static AndroidJavaObject vibrator;
+    static AndroidJavaClass effects;   // android.os.VibrationEffect, looked up once
     static int sdk;
     static bool initialized;
+    static float lastPulse = -1;
 
     static void AndroidPulse(long ms, int amplitude)
     {
+        // Pulses closer together than this blur into one buzz anyway, and each one is a call into Java.
+        if (Time.unscaledTime - lastPulse < 0.04f) return;
+        lastPulse = Time.unscaledTime;
         try
         {
             if (!initialized)
@@ -61,11 +66,11 @@ public static class Haptics
                 vibrator = activity.Call<AndroidJavaObject>("getSystemService", "vibrator");
                 using var version = new AndroidJavaClass("android.os.Build$VERSION");
                 sdk = version.GetStatic<int>("SDK_INT");
+                if (sdk >= 26) effects = new AndroidJavaClass("android.os.VibrationEffect");
             }
             if (vibrator == null) return;
             if (sdk >= 26)
             {
-                using var effects = new AndroidJavaClass("android.os.VibrationEffect");
                 using var effect = effects.CallStatic<AndroidJavaObject>("createOneShot", ms, Mathf.Clamp(amplitude, 1, 255));
                 vibrator.Call("vibrate", effect);
             }

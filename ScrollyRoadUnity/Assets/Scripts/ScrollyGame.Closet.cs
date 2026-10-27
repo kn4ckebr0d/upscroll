@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
@@ -214,16 +215,27 @@ public partial class ScrollyGame
         previewClimber.transform.localRotation = previewItem.localRotation = Quaternion.Euler(0, yaw, 0);
         AimPreview(FramingFor(item.Kind));
         if (item.Kind != CosmeticKind.Character) FitPreview(previewItem, previewCam.orthographicSize);   // big hats and wings: zoom out to fit
+        var texture = RenderThumb();
+        thumbs[key] = texture;
+        return texture;
+    }
+
+    /// Renders what the preview camera sees into a small picture (no shadows: they don't show at that size).
+    /// The picture lives on the GPU only, to save memory.
+    Texture2D RenderThumb()
+    {
+        var cameraData = previewCam.GetUniversalAdditionalCameraData();
+        cameraData.renderShadows = false;
         previewCam.targetTexture = thumbTexture;
         previewCam.aspect = 1;
         previewCam.Render();
+        cameraData.renderShadows = true;
         var texture = new Texture2D(thumbTexture.width, thumbTexture.height, TextureFormat.RGBA32, false);
         var previous = RenderTexture.active;
         RenderTexture.active = thumbTexture;
         texture.ReadPixels(new Rect(0, 0, thumbTexture.width, thumbTexture.height), 0, 0);
-        texture.Apply();
+        texture.Apply(false, makeNoLongerReadable: true);
         RenderTexture.active = previous;
-        thumbs[key] = texture;
         return texture;
     }
 
@@ -429,6 +441,7 @@ public partial class ScrollyGame
         if (!open)
         {
             previewCam.targetTexture = null;
+            previewTexture.Release();   // its memory comes back; it's remade the next time it's drawn
             return;
         }
         previewSpunAt = -10;
@@ -476,7 +489,7 @@ public partial class ScrollyGame
             var lockIcon = Ui.Picture(face.transform, Center, new Vector2(0, 6), new Vector2(30, 30), Ui.Icon("lock"), new Color(1, 1, 1, 0.9f));
             var card = new ClosetCard { Item = item, Thumb = thumb, Coin = coin, Lock = lockIcon };
             card.Button = new HudButton { Rect = rect, Face = face, Lip = rect.GetChild(0).GetComponent<Image>(), Icon = check, Label = label,
-                Action = () => SelectClosetItem(card.Item) };
+                Action = () => SelectClosetItem(card.Item), Clip = closetViewport };
             buttons.Add(card.Button);
             closetCards.Add(card);
         }
@@ -615,22 +628,32 @@ public partial class ScrollyGame
     int previewTouch = -1;
 
     /// A finger that starts on the stage spins the climber (with momentum); two fingers pinch to zoom.
+    readonly List<Touch> previewActive = new();
+    readonly HashSet<int> previewFingers = new();   // fingers that started on the stage
+
     void PreviewInput()
     {
-        var active = new List<Touch>();
+        var active = previewActive;
+        active.Clear();
         foreach (var touch in Touch.activeTouches)
         {
             if (touch.phase is UnityEngine.InputSystem.TouchPhase.Ended or UnityEngine.InputSystem.TouchPhase.Canceled)
             {
+                previewFingers.Remove(touch.touchId);
                 if (touch.touchId == previewTouch) previewTouch = -1;
                 continue;
             }
-            // Inspecting, a finger anywhere spins; otherwise it has to start on the preview.
-            if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began && !buttonTouches.Contains(touch.touchId)
+            // Inspecting, a finger anywhere spins; otherwise it has to start on the preview. Other fingers
+            // (a thumb resting on the grid) never join in.
+            if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began && !buttonTouches.ContainsKey(touch.touchId)
                 && (closetInspecting || RectTransformUtility.RectangleContainsScreenPoint(previewImage.rectTransform, touch.screenPosition, null)))
+            {
+                previewFingers.Add(touch.touchId);
                 previewTouch = touch.touchId;
-            if (previewTouch != -1) active.Add(touch);
+            }
+            if (previewFingers.Contains(touch.touchId)) active.Add(touch);
         }
+        if (previewTouch == -1 && active.Count > 0) previewTouch = active[0].touchId;
         if (previewTouch == -1 || active.Count == 0)
         {
             pinchStartDistance = 0;
@@ -720,6 +743,7 @@ public partial class ScrollyGame
         {
             if (giftModel != null) giftModel.gameObject.SetActive(false);
             previewCam.targetTexture = null;
+            previewTexture.Release();
             RefreshMenus();
             return;
         }

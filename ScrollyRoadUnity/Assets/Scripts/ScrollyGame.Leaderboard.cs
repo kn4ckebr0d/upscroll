@@ -266,16 +266,7 @@ public partial class ScrollyGame
         root.localRotation = Quaternion.Euler(0, 20, 0);
         var head = new Bounds(root.TransformPoint(0, 0.88f, 0), new Vector3(0.8f, 0.7f, 0.5f));
         FitPreview(root.Find("rig/hat"), 0.5f, head);
-        previewCam.targetTexture = thumbTexture;
-        previewCam.aspect = 1;
-        previewCam.Render();
-        var texture = new Texture2D(thumbTexture.width, thumbTexture.height, TextureFormat.RGBA32, false);
-        var previous = RenderTexture.active;
-        RenderTexture.active = thumbTexture;
-        texture.ReadPixels(new Rect(0, 0, thumbTexture.width, thumbTexture.height), 0, 0);
-        texture.Apply();
-        RenderTexture.active = previous;
-        return portraits[key] = texture;
+        return portraits[key] = RenderThumb();
     }
 
     // MARK: - Every frame

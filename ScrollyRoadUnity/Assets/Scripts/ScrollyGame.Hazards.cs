@@ -95,13 +95,14 @@ public partial class ScrollyGame
 
     void CullHazards(float bottom)
     {
-        lanes.RemoveAll(lane =>
+        for (int i = lanes.Count - 1; i >= 0; i--)
         {
-            if (lane.Y >= bottom) return false;
+            var lane = lanes[i];
+            if (lane.Y >= bottom) continue;
             foreach (var mob in lane.Mobs) Destroy(mob.gameObject);
             Destroy(lane.Stripe);
-            return true;
-        });
+            lanes.RemoveAt(i);
+        }
     }
 
     void CheckCollisions()

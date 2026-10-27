@@ -33,20 +33,15 @@ public static class StampArt
         return true;
     }
 
-    public static Sprite Face(int page)
-    {
-        if (!faces.TryGetValue(page, out var sprite))
-            faces[page] = sprite = Ui.MakeShape(128, (x, y) => Inside(page, x, y) ? 1 : 0);
-        return sprite;
-    }
+    public static Sprite Face(int page) => faces.TryGetValue(page, out var sprite) ? sprite : faces[page] = MakeFace(page);
+
+    static Sprite MakeFace(int page) => Ui.MakeShape(128, (x, y) => Inside(page, x, y) ? 1 : 0);
 
     /// A thin outline a little inside the shape's edge, like the rim of a rubber stamp.
-    public static Sprite Ring(int page)
-    {
-        if (!rings.TryGetValue(page, out var sprite))
-            rings[page] = sprite = Ui.MakeShape(128, (x, y) => Inside(page, x / 0.88f, y / 0.88f) && !Inside(page, x / 0.77f, y / 0.77f) ? 1 : 0);
-        return sprite;
-    }
+    public static Sprite Ring(int page) => rings.TryGetValue(page, out var sprite) ? sprite : rings[page] = MakeRing(page);
+
+    static Sprite MakeRing(int page) =>
+        Ui.MakeShape(128, (x, y) => Inside(page, x / 0.88f, y / 0.88f) && !Inside(page, x / 0.77f, y / 0.77f) ? 1 : 0);
 
     /// The zone's icon: a white SVG drawing from Resources/Stamps, named "<page>_<zone>".
     public static Sprite Icon(int page, int index)

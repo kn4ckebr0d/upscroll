@@ -32,6 +32,7 @@ public partial class ScrollyGame
     void ToggleSound()
     {
         Synth.Instance.Enabled = !Synth.Instance.Enabled;
+        Progress.Save();
         Synth.Instance.Click();
         RefreshShop();
     }

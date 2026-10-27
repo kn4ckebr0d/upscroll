@@ -94,10 +94,11 @@ public partial class ScrollyGame
     void CollectCoins()
     {
         var p = climber.transform.position;
-        coins.RemoveAll(pickup =>
+        for (int i = coins.Count - 1; i >= 0; i--)
         {
+            var pickup = coins[i];
             var c = pickup.Node.transform.position;
-            if (Mathf.Abs(c.x - p.x) > 0.5f || Mathf.Abs(c.y - (p.y + 0.6f)) > 0.6f) return false;
+            if (Mathf.Abs(c.x - p.x) > 0.5f || Mathf.Abs(c.y - (p.y + 0.6f)) > 0.6f) continue;
             switch (pickup.Kind)
             {
                 case PickupKind.Coin:
@@ -131,17 +132,17 @@ public partial class ScrollyGame
             }
             pickup.Node.GetComponent<Spinner>().DegreesPerSecond = 1400;
             pickup.Node.AddComponent<CoinPop>();
-            return true;
-        });
+            coins.RemoveAt(i);
+        }
     }
 
     void CullCoins(float bottom)
     {
-        coins.RemoveAll(pickup =>
+        for (int i = coins.Count - 1; i >= 0; i--)
         {
-            if (pickup.Y >= bottom) return false;
-            Destroy(pickup.Node);
-            return true;
-        });
+            if (coins[i].Y >= bottom) continue;
+            Destroy(coins[i].Node);
+            coins.RemoveAt(i);
+        }
     }
 }

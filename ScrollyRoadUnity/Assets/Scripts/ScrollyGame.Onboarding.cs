@@ -69,8 +69,8 @@ public partial class ScrollyGame
             dragPrompt.localScale = Vector3.one * (1 + 0.03f * Mathf.Sin(Time.unscaledTime * 4f));
 
         // The swipe, a few meters into a first run, before the first mobs.
-        if (activeHint == Hint.None && phase == Phase.Playing && !isSnapping && !TutorialActive && Progress.HintCount("swipe") == 0
-            && ClimberY - anchorY > 3f)
+        if (activeHint == Hint.None && phase == Phase.Playing && !isSnapping && !TutorialActive && ClimberY - anchorY > 3f
+            && Progress.HintCount("swipe") == 0)
             StartHint(Hint.Swipe, SwipeHint());
     }
 
@@ -271,7 +271,7 @@ public partial class ScrollyGame
             if (k > 0.95f && !ripple.gameObject.activeSelf) StartCoroutine(Ripple(ClimberPoint + new Vector2(30, 16)));
             yield return null;
         }
-        Time.timeScale = 1;
+        if (!interrupted) Time.timeScale = 1;
         yield return new WaitForSecondsRealtime(0.6f);
         StopHint();
     }

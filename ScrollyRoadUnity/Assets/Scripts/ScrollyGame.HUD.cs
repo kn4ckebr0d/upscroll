@@ -18,6 +18,7 @@ public partial class ScrollyGame
         public Text Label;
         public Text Price;
         public System.Action Action;
+        public RectTransform Clip;   // in a scrolling list: only tappable where the list shows it
         public bool Visible => Rect.gameObject.activeInHierarchy;
     }
 
@@ -60,7 +61,20 @@ public partial class ScrollyGame
         BuildHints();
         BuildTutorial();
         BuildTitle();
+        BuildInterruptCard();
         BuildModals();
+    }
+
+    /// Shown while the game is frozen after an interruption (a call, Control Center, a notification).
+    void BuildInterruptCard()
+    {
+        var card = Ui.Box(canvasRect, Center, new Vector2(0, 40), new Vector2(310, 110), Ui.Cream, Ui.CreamShade, 30, 6);
+        interruptCard = card.transform.parent.gameObject;
+        var title = Ui.Label(card.transform, "Paused", 30, Ui.Brown);
+        title.rectTransform.anchoredPosition = new Vector2(0, 18);
+        var hint = Ui.Label(card.transform, "Touch the screen to grab on again", 16, Ui.Brown);
+        hint.rectTransform.anchoredPosition = new Vector2(0, -24);
+        interruptCard.SetActive(false);
     }
 
     // MARK: - Top bar
@@ -167,28 +181,36 @@ public partial class ScrollyGame
         return button;
     }
 
-    /// Checks a touch against the visible buttons. On touch-down it only presses visually;
-    /// the action fires when the finger lifts on the same button. An open screen covers the rest.
-    bool TryPressButton(Vector2 screenPosition, bool onRelease)
+    /// The button under a finger, or null. An open screen covers everything behind it, and a button in a
+    /// scrolling list only counts where the list shows it.
+    HudButton ButtonAt(Vector2 screenPosition)
     {
-        var modal = OpenModal;
         foreach (var button in buttons)
-        {
-            if (!button.Visible) continue;
-            if (modal != null && !button.Rect.IsChildOf(modal)) continue;
-            if (!RectTransformUtility.RectangleContainsScreenPoint(button.Rect, screenPosition, null)) continue;
-            if (onRelease)
-            {
-                Haptics.Tick(0.4f);
-                button.Action();
-            }
-            else StartCoroutine(Bump(button.Rect, -0.08f));
-            return true;
-        }
-        return false;
+            if (CanTap(button, screenPosition)) return button;
+        return null;
+    }
+
+    bool CanTap(HudButton button, Vector2 screenPosition)
+    {
+        if (!button.Visible) return false;
+        var modal = OpenModal;
+        if (modal != null && !button.Rect.IsChildOf(modal)) return false;
+        if (button.Clip != null && !RectTransformUtility.RectangleContainsScreenPoint(button.Clip, screenPosition, null)) return false;
+        return RectTransformUtility.RectangleContainsScreenPoint(button.Rect, screenPosition, null);
+    }
+
+    /// Touch-down on a button only presses it visually; it fires when that finger lifts still on it.
+    void PressButton(HudButton button) => StartCoroutine(Bump(button.Rect, -0.08f));
+
+    void FireButton(HudButton button)
+    {
+        Haptics.Tick(0.4f);
+        button.Action();
     }
 
     // MARK: - Updating
+
+    int shownMeters = -1, shownLeft = -1, shownNextZone = -1;   // what the HUD texts say now
 
     void UpdateHUD()
     {
@@ -198,7 +220,12 @@ public partial class ScrollyGame
             Phase.Reviving => taxiRocket != null ? taxiRocket.transform.position.y : ClimberY,
             _ => ClimberY,
         };
-        heightText.text = $"{Mathf.Max(0, Mathf.FloorToInt(y))}<size=21><color=#A48F6C> m</color></size>";
+        int meters = Mathf.Max(0, Mathf.FloorToInt(y));
+        if (meters != shownMeters)
+        {
+            shownMeters = meters;
+            heightText.text = $"{meters}<size=21><color=#A48F6C> m</color></size>";
+        }
 
         bool climbing = phase is Phase.Playing or Phase.Launching or Phase.Reviving or Phase.Falling;
         heightCard.gameObject.SetActive(climbing);
@@ -207,8 +234,14 @@ public partial class ScrollyGame
         nextBubble.gameObject.SetActive(showNext);
         if (showNext)
         {
-            string target = next.IsLaunchPad ? "the ROCKET" : ThemeFor(next.Zone).Name;
-            nextText.text = $"{Mathf.CeilToInt(next.Y - y)} m to {target}";
+            int left = Mathf.CeilToInt(next.Y - y);
+            if (left != shownLeft || next.Zone != shownNextZone)
+            {
+                shownLeft = left;
+                shownNextZone = next.Zone;
+                string target = next.IsLaunchPad ? "the ROCKET" : ThemeFor(next.Zone).Name;
+                nextText.text = $"{left} m to {target}";
+            }
         }
         bestPill.gameObject.SetActive(climbing && Time.time < bestPillUntil);
 
@@ -324,11 +357,12 @@ public partial class ScrollyGame
     {
         for (float t = 0; t < 0.18f; t += Time.unscaledDeltaTime)
         {
+            if (rect == null) yield break;   // destroyed meanwhile (a closet grid rebuilt, a page turned)
             float k = t < 0.06f ? t / 0.06f : 1 - (t - 0.06f) / 0.12f;
             rect.localScale = Vector3.one * (1 + amount * k);
             yield return null;
         }
-        rect.localScale = Vector3.one;
+        if (rect != null) rect.localScale = Vector3.one;
     }
 
     /// Springy entrance: grows from `from` to full size with a small overshoot.
@@ -336,12 +370,13 @@ public partial class ScrollyGame
     {
         for (float t = 0; t < 0.22f; t += Time.unscaledDeltaTime)
         {
+            if (rect == null) yield break;
             float u = t / 0.22f;
             float overshoot = 1 + Mathf.Sin(u * Mathf.PI) * 0.08f;
             rect.localScale = Vector3.one * Mathf.Lerp(from, 1f, u) * overshoot;
             yield return null;
         }
-        rect.localScale = Vector3.one;
+        if (rect != null) rect.localScale = Vector3.one;
     }
 
     /// A quick side-to-side wiggle, for things that are new.

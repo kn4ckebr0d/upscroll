@@ -118,7 +118,8 @@ public partial class ScrollyGame
                 break;
 
             case ObstacleKind.Waterfall:
-                var water = new Material(shadeMaterial) { color = new Color(0.45f, 0.75f, 1f, 0.6f) };
+                waterMaterial ??= new Material(shadeMaterial) { color = new Color(0.45f, 0.75f, 1f, 0.6f) };
+                var water = waterMaterial;
                 var flow = node.gameObject.AddComponent<Waterfall>();
                 flow.Bottom = y0;
                 flow.Top = y1;
@@ -253,14 +254,16 @@ public partial class ScrollyGame
         return SolidAt(target, y + 0.05f, y + Tuning.ClimberHeight);
     }
 
+    Material waterMaterial;   // one for every waterfall
+
     void CullObstacles(float bottom)
     {
-        obstacles.RemoveAll(o =>
+        for (int i = obstacles.Count - 1; i >= 0; i--)
         {
-            if (o.Y1 >= bottom) return false;
-            Destroy(o.Node);
-            return true;
-        });
+            if (obstacles[i].Y1 >= bottom) continue;
+            Destroy(obstacles[i].Node);
+            obstacles.RemoveAt(i);
+        }
     }
 }
 

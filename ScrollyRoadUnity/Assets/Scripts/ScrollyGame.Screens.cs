@@ -107,6 +107,10 @@ public partial class ScrollyGame
     void UpdateScreens()
     {
         titleGroup.SetActive(phase == Phase.Title && OpenModal == null);
+        // Full-screen menus cover the world, so don't draw it (and its shadows) behind them.
+        bool covered = closetPanel.activeSelf || giftPanel.activeSelf || boardPanel.activeSelf || bookPanel.activeSelf || settingsPanel.activeSelf;
+        int mask = covered ? 0 : worldCullingMask;
+        if (cam.cullingMask != mask) cam.cullingMask = mask;
         coinPill.gameObject.SetActive(OpenModal == null);
         coinIcon.gameObject.SetActive(OpenModal == null);
     }
