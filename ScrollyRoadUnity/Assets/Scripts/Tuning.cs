@@ -37,7 +37,6 @@ public static class Tuning
     // Mobs
     public const float SafeStartMeters = 8f;             // no mobs below this
     public const float ZoneSafeMeters = 5f;              // no mobs this close above a checkpoint
-    public const float OutlineWidth = 0.035f;            // the cream rim around the climber and mobs, in meters
     public const float LaneHalfSpan = 7f;                // mobs wrap around between -7 and +7 m
     public const float HitStop = 0.12f;                  // freeze frame when a mob hits you
 

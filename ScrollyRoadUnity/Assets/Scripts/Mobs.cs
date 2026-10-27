@@ -46,7 +46,6 @@ public static class Mobs
             case MobKind.Vulture: BuildVulture(mob); break;
             case MobKind.Skeleton: BuildSkeleton(mob); break;
         }
-        Voxel.Outline(root.transform, Tuning.OutlineWidth);
         return mob;
     }
 

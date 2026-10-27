@@ -73,11 +73,7 @@ public partial class ScrollyGame
 
     IEnumerable<Cosmetic> AllItems => ClosetTabs.SelectMany(Cosmetics.OfKind);
 
-    void DressClimber()
-    {
-        climber.Build(EquippedCharacter, EquippedHat, EquippedBackpack, EquippedCharm);
-        Voxel.Outline(climber.transform, Tuning.OutlineWidth);   // stands out on any wall
-    }
+    void DressClimber() => climber.Build(EquippedCharacter, EquippedHat, EquippedBackpack, EquippedCharm);
 
     // MARK: - Owning things
 

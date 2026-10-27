@@ -200,7 +200,6 @@ public partial class ScrollyGame : MonoBehaviour
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
         Voxel.Init(voxelMaterial);
-        Voxel.InitOutline(shadeMaterial);
         Synth.Create();
         Haptics.Enabled = Progress.HapticsOn;
         weather = Weather.Create();
