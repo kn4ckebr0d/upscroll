@@ -208,7 +208,7 @@ public partial class ScrollyGame
         int stamps = PageSize(pageEffect);
         int found = Enumerable.Range(0, stamps).Count(i => Progress.StampCount(StampId(pageEffect, i)) > 0);
         var pagePill = Ui.Pill(bookPage, Center, new Vector2(0, 168), new Vector2(64, 24), Ui.Gold, Ui.GoldShade, 2);
-        Ui.Label(pagePill.transform, $"{found}/{stamps}", 15, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        Ui.Label(pagePill.transform, $"{found}/{stamps}", 15, Ui.OnGold, TextAnchor.MiddleCenter);
 
         // What this planet does, each with a small icon (a mystery until you've been there).
         var facts = pageVisited ? PlanetFacts(pageEffect) : new (Sprite icon, string text)[] { (null, "Visit this planet to find out more") };
@@ -243,7 +243,7 @@ public partial class ScrollyGame
                 if (!Progress.StampSeen(id))
                 {
                     var tag = Ui.Pill(bookPage, Center, position + new Vector2(-32, 34), new Vector2(50, 22), Ui.Gold, Ui.GoldShade, 2);
-                    Ui.Label(tag.transform, "NEW", 13, Color.white, TextAnchor.MiddleCenter, shadow: true);
+                    Ui.Label(tag.transform, "NEW", 13, Ui.OnGold, TextAnchor.MiddleCenter);
                     StartCoroutine(Wiggle(stamp.rectTransform, 0.25f + wiggles++ * 0.15f));
                 }
             }

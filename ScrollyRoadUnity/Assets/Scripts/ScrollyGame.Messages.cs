@@ -31,7 +31,7 @@ public partial class ScrollyGame
         stampHeight = Ui.Label(stampRect, "", 15, Color.white);
         stampHeight.rectTransform.anchoredPosition = new Vector2(0, -42);
         var ribbon = Ui.Pill(stampRect, Center, new Vector2(0, -80), new Vector2(124, 30), Ui.Gold, Ui.GoldShade, 3);
-        Ui.Label(ribbon.transform, "NEW STAMP!", 15, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        Ui.Label(ribbon.transform, "NEW STAMP!", 15, Ui.OnGold, TextAnchor.MiddleCenter);
         stampNewRibbon = ribbon.transform.parent.gameObject;
         stampNewRibbon.transform.localRotation = Quaternion.Euler(0, 0, -5);
         stampRect.gameObject.SetActive(false);

@@ -4,7 +4,7 @@ using UnityEngine;
 /// Builds chunky voxel boxes that share one matte material per color.
 public static class Voxel
 {
-    static Material baseMaterial;
+    static Material baseMaterial, outlineMaterial;
     static Mesh cubeMesh;
     static Mesh cylinderMesh;
     static readonly Dictionary<uint, Material> materials = new();
@@ -18,6 +18,39 @@ public static class Voxel
         var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cylinderMesh = cylinder.GetComponent<MeshFilter>().sharedMesh;
         Object.Destroy(cylinder);
+    }
+
+    /// The outline's material: flat (unlit) cream, drawing only the back faces (front faces culled) of a
+    /// slightly bigger copy of each box.
+    public static void InitOutline(Material unlit)
+    {
+        outlineMaterial = new Material(unlit) { color = new Color(1f, 0.97f, 0.88f, 1f) };
+        outlineMaterial.SetFloat("_Cull", 1);   // front faces culled: only the rim around the box shows
+    }
+
+    /// A thin cream rim around a voxel model, so it stands out on any wall (the "inverted hull" trick:
+    /// each box gets a slightly bigger twin that only draws its inside). `width` is in meters.
+    public static void Outline(Transform root, float width)
+    {
+        if (outlineMaterial == null) return;
+        foreach (var renderer in root.GetComponentsInChildren<MeshRenderer>())
+        {
+            if (renderer.sharedMaterial == outlineMaterial) continue;
+            var t = renderer.transform;
+            var size = t.lossyScale;
+            var shell = new GameObject("outline");
+            shell.transform.SetParent(t, false);
+            shell.transform.localScale = new Vector3(
+                1 + 2 * width / Mathf.Max(0.001f, Mathf.Abs(size.x)),
+                1 + 2 * width / Mathf.Max(0.001f, Mathf.Abs(size.y)),
+                1 + 2 * width / Mathf.Max(0.001f, Mathf.Abs(size.z)));
+            shell.layer = t.gameObject.layer;
+            shell.AddComponent<MeshFilter>().sharedMesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+            var rim = shell.AddComponent<MeshRenderer>();
+            rim.sharedMaterial = outlineMaterial;
+            rim.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            rim.receiveShadows = false;
+        }
     }
 
     public static Color Hex(uint hex) =>

@@ -7,7 +7,8 @@ public partial class ScrollyGame
 {
     int continuesUsed;
 
-    int ContinuePrice => Tuning.ContinueBasePrice << continuesUsed;   // 30, 60, 120…
+    /// Grows with how high your checkpoint is (35 at 100 m, 125 at 1000 m) and doubles with each continue.
+    int ContinuePrice => Mathf.RoundToInt((Tuning.ContinueBasePrice + anchorY / Tuning.ContinueMetersPerCoin) / 5f) * 5 << continuesUsed;
 
     void BuyExtraLife()
     {
@@ -84,7 +85,7 @@ public partial class ScrollyGame
         climber.SetVisible(true);
     }
 
-    bool CanContinue => anchorY > fallFloorY + 0.01f;
+    bool CanContinue => anchorY > fallFloorY + 0.01f && continuesUsed < Tuning.MaxContinuesPerRun;
 
     void ContinueFromCheckpoint()
     {

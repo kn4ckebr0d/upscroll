@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,6 +14,11 @@ public partial class ScrollyGame
     RectTransform gameOverBest, stampRow, stampBadge, lifePriceTag;
     Text stampBadgeText, lifePriceText;
     GameObject stampsLabel, noStampsLabel;
+    RectTransform gameOverCoinPill, nextUnlockFill;
+    HudButton nextUnlockRow;
+    RawImage nextUnlockThumb;
+    Text nextUnlockName, nextUnlockCount;
+    Cosmetic nextUnlock;
     HudButton settingsButton, stampsButton, lifeButton, continueButton, declineButton, playAgainButton;
     HudButton soundToggle, hapticsToggle, shakeToggle, bossTestToggle, settingsDone;
     static Texture2D patternTexture;
@@ -75,12 +81,12 @@ public partial class ScrollyGame
             () => ShowStampBook(true));
         var badge = Ui.Circle(stampsButton.Rect, Center, new Vector2(26, 26), 28, Ui.Gold);
         stampBadge = badge.rectTransform;
-        stampBadgeText = Ui.Label(stampBadge, "", 15, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        stampBadgeText = Ui.Label(stampBadge, "", 15, Ui.OnGold, TextAnchor.MiddleCenter);
 
         lifeButton = MakeRoundButton(t, BottomRight, new Vector2(-66, 196), 72, Ui.Cream, Ui.CreamShade, Ui.Icon("heart"), Color.white, BuyExtraLife);
         var tag = Ui.Pill(lifeButton.Rect, Center, new Vector2(0, -34), new Vector2(70, 26), Ui.Gold, Ui.GoldShade, 2);
         lifePriceTag = (RectTransform)tag.transform.parent;
-        lifePriceText = Ui.Label(tag.transform, "", 15, Color.white, TextAnchor.MiddleRight, shadow: true);
+        lifePriceText = Ui.Label(tag.transform, "", 15, Ui.OnGold, TextAnchor.MiddleRight);
         lifePriceText.rectTransform.offsetMax = new Vector2(-10, 0);
         Ui.Coin(lifePriceTag, new Vector2(0, 0.5f), new Vector2(12, 0), 22);
         lifeButton.Label.rectTransform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -36 - 30);
@@ -94,12 +100,12 @@ public partial class ScrollyGame
         giftButton.Label.text = "Gift";
         var giftDot = Ui.Circle(giftButton.Rect, Center, new Vector2(23, 23), 26, Ui.Gold);
         giftBadge = giftDot.rectTransform;
-        Ui.Label(giftBadge, "!", 17, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        Ui.Label(giftBadge, "!", 17, Ui.OnGold, TextAnchor.MiddleCenter);
 
         // The one main action, in the thumb zone.
         var prompt = Ui.Pill(t, Bottom, new Vector2(0, 62), new Vector2(250, 52), Ui.Gold, Ui.GoldShade, 4);
         dragPrompt = (RectTransform)prompt.transform.parent;
-        Ui.Label(prompt.transform, "Drag down to climb", 20, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        Ui.Label(prompt.transform, "Drag down to climb", 20, Ui.OnGold, TextAnchor.MiddleCenter);
     }
 
     void ShowTitle(bool visible) => titleGroup.SetActive(visible);
@@ -208,9 +214,9 @@ public partial class ScrollyGame
         soundToggle = MakeToggle(t, 71, "Sound", Ui.Icon("sound_on"), ToggleSound);
         hapticsToggle = MakeToggle(t, 9, "Vibration", Ui.Icon("haptics"), ToggleHaptics);
         shakeToggle = MakeToggle(t, -53, "Screen shake", Ui.Icon("shake"), ToggleShake);
-        var howTo = MakeButton(t, Center, new Vector2(0, -120), new Vector2(280, 52), Ui.Gold, Ui.GoldShade, Color.white, ReplayTutorial, icon: Ui.Icon("hand"));
+        var howTo = MakeButton(t, Center, new Vector2(0, -120), new Vector2(280, 52), Ui.Gold, Ui.GoldShade, Ui.OnGold, ReplayTutorial, icon: Ui.Icon("hand"));
         howTo.Label.text = "How to play";
-        howTo.Icon.color = Color.white;
+        howTo.Icon.color = Ui.OnGold;
 
         // Alpha only: reach a boss planet quickly to try it.
         bossTestToggle = MakeToggle(panel, 0, "Alpha: boss next", StampArt.Icon(5, 1), ToggleBossTest);
@@ -343,34 +349,37 @@ public partial class ScrollyGame
     {
         var panel = MakeModal("Results");
         gameOverPanel = panel.gameObject;
-        var card = Ui.Box(panel, Center, new Vector2(0, 70), new Vector2(330, 370), Ui.Cream, Ui.CreamShade, 32, 6);
+        var card = Ui.Box(panel, Center, new Vector2(0, 82), new Vector2(330, 424), Ui.Cream, Ui.CreamShade, 32, 6);
         resultsCard = (RectTransform)card.transform.parent;
         var t = card.transform;
-        var title = Ui.Label(t, "Ouch!", 30, Ui.BrownSoft);
-        title.rectTransform.anchoredPosition = new Vector2(0, 146);
+        var title = Ui.Label(t, "Ouch!", 30, Ui.Brown);
+        title.rectTransform.anchoredPosition = new Vector2(0, 173);
         gameOverScore = Ui.Label(t, "0", 76, Ui.Brown);
-        gameOverScore.rectTransform.anchoredPosition = new Vector2(0, 84);
-        gameOverDelta = Ui.Label(t, "", 16, Ui.BrownSoft);
-        gameOverDelta.rectTransform.anchoredPosition = new Vector2(0, 30);
+        gameOverScore.rectTransform.anchoredPosition = new Vector2(0, 111);
+        gameOverDelta = Ui.Label(t, "", 16, Ui.Brown);
+        gameOverDelta.rectTransform.anchoredPosition = new Vector2(0, 57);
 
-        var best = Ui.Pill(t, Center, new Vector2(0, 30), new Vector2(160, 34), Ui.Gold, Ui.GoldShade, 3);
+        var best = Ui.Pill(t, Center, new Vector2(0, 57), new Vector2(160, 34), Ui.Gold, Ui.GoldShade, 3);
         gameOverBest = (RectTransform)best.transform.parent;
-        Ui.Label(best.transform, "NEW BEST!", 18, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        Ui.Label(best.transform, "NEW BEST!", 18, Ui.OnGold, TextAnchor.MiddleCenter);
         gameOverBest.localRotation = Quaternion.Euler(0, 0, -4);
 
-        var coins = Ui.Pill(t, Center, new Vector2(0, -16), new Vector2(124, 36), Ui.Blue, Ui.BlueShade, 3);
+        var coins = Ui.Pill(t, Center, new Vector2(0, 11), new Vector2(124, 36), Ui.Blue, Ui.BlueShade, 3);
+        gameOverCoinPill = (RectTransform)coins.transform.parent;
         gameOverCoins = Ui.Label(coins.transform, "+0", 20, Color.white, TextAnchor.MiddleRight, shadow: true);
         gameOverCoins.rectTransform.offsetMax = new Vector2(-18, 0);
         Ui.Coin(coins.transform.parent, new Vector2(0, 0.5f), new Vector2(18, 0), 32);
 
         var stampsTitle = Ui.Label(t, "STAMPS THIS RUN", 14, Ui.BrownSoft);
-        stampsTitle.rectTransform.anchoredPosition = new Vector2(0, -60);
+        stampsTitle.rectTransform.anchoredPosition = new Vector2(0, -33);
         stampsLabel = stampsTitle.gameObject;
-        stampRow = Ui.Rect(t, "StampRow", Center, new Vector2(0, -102), new Vector2(300, 52));
-        var noStamps = Ui.Label(t, "Reach a new zone\nto earn a stamp", 16, Ui.BrownSoft);
-        noStamps.rectTransform.anchoredPosition = new Vector2(0, -86);
+        stampRow = Ui.Rect(t, "StampRow", Center, new Vector2(0, -75), new Vector2(300, 52));
+        var noStamps = Ui.Label(t, "Reach a new zone\nto earn a stamp", 16, Ui.Brown);
+        noStamps.rectTransform.anchoredPosition = new Vector2(0, -59);
         noStamps.lineSpacing = 1.05f;
         noStampsLabel = noStamps.gameObject;
+
+        BuildNextUnlock(t);
 
         // Where this run puts you this week (once the leaderboard answers), and the way to see it.
         runRankButton = MakeButton(panel, Bottom, new Vector2(0, 152), new Vector2(240, 44), Ui.Cream, Ui.CreamShade, Ui.Brown,
@@ -383,6 +392,56 @@ public partial class ScrollyGame
             PlayAgain, icon: Ui.Icon("replay"));
         playAgainButton.Label.text = "Play again";
         playAgainButton.Label.fontSize = 22;
+    }
+
+    // MARK: - The next unlock
+
+    /// A strip at the bottom of the results card: the cheapest thing you don't own yet, and how close your
+    /// coins are to it. Tap it to see it in the closet.
+    void BuildNextUnlock(Transform card)
+    {
+        var face = Ui.Box(card, Center, new Vector2(0, -164), new Vector2(296, 58), Voxel.Hex(0xF3E9CC), Ui.CreamShade, 20, 3);
+        var rect = (RectTransform)face.transform.parent;
+        nextUnlockRow = new HudButton { Rect = rect, Face = face, Lip = rect.GetChild(0).GetComponent<Image>(), Action = OpenNextUnlock };
+        buttons.Add(nextUnlockRow);
+        nextUnlockThumb = Ui.Rect(face.transform, "Thumb", new Vector2(0, 0.5f), new Vector2(32, 2), new Vector2(50, 50)).gameObject.AddComponent<RawImage>();
+        nextUnlockThumb.raycastTarget = false;
+        nextUnlockName = Ui.Label(Ui.Rect(face.transform, "Name", new Vector2(0, 0.5f), new Vector2(150, 11), new Vector2(200, 22)), "", 15, Ui.Brown, TextAnchor.MiddleLeft);
+        nextUnlockCount = Ui.Label(Ui.Rect(face.transform, "Count", new Vector2(1, 0.5f), new Vector2(-46, 11), new Vector2(80, 22)), "", 14, Ui.Brown, TextAnchor.MiddleRight);
+        var track = Ui.Rect(face.transform, "Track", new Vector2(0, 0.5f), new Vector2(166, -11), new Vector2(208, 12));
+        Ui.Rounded(track, Ui.CreamShade, 6);
+        nextUnlockFill = Ui.Rect(track, "Fill", Center, Vector2.zero, Vector2.zero);
+        nextUnlockFill.anchorMin = Vector2.zero;
+        nextUnlockFill.anchorMax = new Vector2(0.5f, 1);
+        nextUnlockFill.offsetMin = nextUnlockFill.offsetMax = Vector2.zero;
+        Ui.Rounded(nextUnlockFill, Ui.Gold, 6);
+        rect.gameObject.SetActive(false);
+    }
+
+    /// The cheapest item for coins you don't own yet, or null when you have them all.
+    Cosmetic NextUnlock() => AllItems.Where(i => i.Price > 0 && !Owns(i)).OrderBy(i => i.Price).FirstOrDefault();
+
+    void ShowNextUnlock()
+    {
+        nextUnlock = NextUnlock();
+        nextUnlockRow.Rect.gameObject.SetActive(nextUnlock != null);
+        if (nextUnlock == null) return;
+        int coins = Progress.Coins, price = nextUnlock.Price;
+        bool ready = coins >= price;
+        nextUnlockThumb.texture = Thumbnail(nextUnlock);
+        nextUnlockName.text = ready ? $"Get the {nextUnlock.Name}!" : $"Next: {nextUnlock.Name}";
+        nextUnlockCount.text = ready ? "Closet ›" : $"{coins}/{price}";
+        nextUnlockFill.anchorMax = new Vector2(Mathf.Clamp01(coins / (float)price), 1);
+        StartCoroutine(Pop(nextUnlockRow.Rect, 0.8f));
+    }
+
+    void OpenNextUnlock()
+    {
+        if (nextUnlock == null) return;
+        var item = nextUnlock;
+        ShowCloset(true);
+        ShowClosetTab(item.Kind);
+        SelectClosetItem(item);
     }
 
     /// The results of the run, revealed one by one.
@@ -399,6 +458,7 @@ public partial class ScrollyGame
     IEnumerator RevealResults()
     {
         resultsRevealing = true;
+        nextUnlockRow.Rect.gameObject.SetActive(false);
         gameOverScore.text = "0";
         gameOverDelta.text = "";
         gameOverBest.gameObject.SetActive(false);
@@ -443,13 +503,16 @@ public partial class ScrollyGame
             gameOverDelta.text = missing <= 0 ? "You matched your best!" : $"{missing} m short of your best";
         }
 
-        // Coins tick in.
+        // Coins tick in (no "+0" pill on a run without coins), then what they bring you closer to.
+        gameOverCoinPill.gameObject.SetActive(runCoins > 0);
         for (int c = 1; c <= runCoins; c++)
         {
             gameOverCoins.text = $"+{c}";
             if (c % Mathf.Max(1, runCoins / 8) == 0) Synth.Instance.Coin();
             yield return new WaitForSeconds(Mathf.Min(0.05f, 0.5f / Mathf.Max(1, runCoins)));
         }
+
+        ShowNextUnlock();
 
         // Stamps pop in one by one.
         const int slots = 5;
@@ -463,7 +526,7 @@ public partial class ScrollyGame
             if (runNewStamps.Contains(i))
             {
                 var tag = Ui.Pill(stampRow, Center, position + new Vector2(0, -31), new Vector2(46, 20), Ui.Gold, Ui.GoldShade, 2);
-                Ui.Label(tag.transform, "NEW", 13, Color.white, TextAnchor.MiddleCenter, shadow: true);
+                Ui.Label(tag.transform, "NEW", 13, Ui.OnGold, TextAnchor.MiddleCenter);
             }
             Synth.Instance.Click();
             Haptics.Tick(0.6f);

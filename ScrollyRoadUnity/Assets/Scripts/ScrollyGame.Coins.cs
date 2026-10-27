@@ -40,7 +40,9 @@ public partial class ScrollyGame
             {
                 float cy = y + i * Tuning.CoinSpacing;
                 if (cy >= top) break;
-                SpawnPickup(EffectAt(cy) == PlanetEffect.Hot ? PickupKind.Water : PickupKind.Coin, c, cy);
+                // On hot planets a row is mostly water drops, but still ends in two coins.
+                bool water = EffectAt(cy) == PlanetEffect.Hot && i < length - 2;
+                SpawnPickup(water ? PickupKind.Water : PickupKind.Coin, c, cy);
                 switch (pattern)
                 {
                     case 1: c = Mathf.Clamp(c + direction, 0, last); break;                              // diagonal

@@ -200,6 +200,7 @@ public partial class ScrollyGame : MonoBehaviour
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
         Voxel.Init(voxelMaterial);
+        Voxel.InitOutline(shadeMaterial);
         Synth.Create();
         Haptics.Enabled = Progress.HapticsOn;
         weather = Weather.Create();
@@ -1002,6 +1003,10 @@ public partial class ScrollyGame : MonoBehaviour
                     autopilot = true;
                     new GameObject("InterruptTest").AddComponent<CoroutineHost>().StartCoroutine(InterruptForTest());
                     break;
+                case "-scrollyResultsDemo":
+                    // The results screen for a made-up run, to check its layout.
+                    new GameObject("ResultsTest").AddComponent<CoroutineHost>().StartCoroutine(ResultsForTest());
+                    break;
                 case "-scrollyBoard": ShowBoard(true); break;
                 case "-scrollyBoardDemo":
                     // The leaderboard with made-up players, to check it without the online service.
@@ -1036,6 +1041,14 @@ public partial class ScrollyGame : MonoBehaviour
         // Runs on its own object so world resets (which stop the game's coroutines) don't interrupt it.
         if (shotDir != null)
             new GameObject("TestHarness").AddComponent<CoroutineHost>().StartCoroutine(TakeScreenshots(shotDir, shots, interval, delay));
+    }
+
+    IEnumerator ResultsForTest()
+    {
+        yield return null;   // after the world is set up
+        lastRunMeters = 123;
+        runCoins = 14;
+        ShowGameOver(true);
     }
 
     IEnumerator InterruptForTest()

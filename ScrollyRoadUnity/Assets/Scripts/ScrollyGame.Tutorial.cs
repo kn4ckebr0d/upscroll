@@ -45,7 +45,7 @@ public partial class ScrollyGame
             trackCircleFaces[i] = circle;
             trackCircles[i] = circle.rectTransform;
             Ui.Ring(trackCircles[i], Center, Vector2.zero, 84, new Color(1, 1, 1, 0.9f));
-            trackCircleLabels[i] = Ui.Label(trackCircles[i], "HOLD", 18, Color.white, TextAnchor.MiddleCenter, shadow: true);
+            trackCircleLabels[i] = Ui.Label(trackCircles[i], "HOLD", 18, Ui.OnGold, TextAnchor.MiddleCenter);
         }
 
         // While holding: an arrow under the circle, bobbing down, so the swipe needs no reading.
@@ -60,7 +60,7 @@ public partial class ScrollyGame
         Ui.Picture(sideCircle, Center, new Vector2(17, 0), new Vector2(26, 26), Ui.Icon("right"), Color.white);
         var tag = Ui.Pill(group, Center, Vector2.zero, new Vector2(80, 30), Ui.Gold, Ui.GoldShade, 3);
         holdTag = (RectTransform)tag.transform.parent;
-        Ui.Label(tag.transform, "HOLD", 16, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        Ui.Label(tag.transform, "HOLD", 16, Ui.OnGold, TextAnchor.MiddleCenter);
         tutorialGroup.SetActive(false);
     }
 
@@ -113,6 +113,15 @@ public partial class ScrollyGame
         Haptics.Success();
         Debris.Burst(climber.transform.position + Vector3.up * 1.2f, 0xFFD54F, 16, 3.5f);
         if (tutorialWarmUp) ShowBanner("WARMED UP!", "LET'S CLIMB");
+        else if (Progress.HintCount("welcome") == 0)
+        {
+            // A welcome gift, so there's something to buy in the closet right away.
+            Progress.CountHint("welcome");
+            Progress.Coins += Tuning.WelcomeCoins;
+            Progress.Save();
+            RefreshShop();
+            ShowBanner("YOU'RE READY!", $"+{Tuning.WelcomeCoins} COINS TO SPEND");
+        }
         else ShowBanner("NICE CLIMBING!", "YOU'RE READY");
         ShowZoneStamp(ZoneIndex(anchorY + 0.01f), collect: false);
     }
@@ -234,12 +243,14 @@ public partial class ScrollyGame
                 circle.anchoredPosition = new Vector2(x, y);
                 circle.localScale = Vector3.one;
                 trackCircleFaces[i].color = Ui.Blue;
+                trackCircleLabels[i].color = Color.white;
             }
             else
             {
                 circle.anchoredPosition = Vector2.Lerp(circle.anchoredPosition, new Vector2(x, circleTopY), Time.unscaledDeltaTime * 12);
                 circle.localScale = Vector3.one * pulse;
                 trackCircleFaces[i].color = Ui.Gold;
+                trackCircleLabels[i].color = Ui.OnGold;
             }
         }
 
@@ -324,6 +335,7 @@ public partial class ScrollyGame
             circle.anchoredPosition = at;
             circle.localScale = Vector3.one;
             trackCircleFaces[0].color = Ui.Blue;
+            trackCircleLabels[0].color = Color.white;
             holdTag.anchoredPosition = at + new Vector2(0, 66);
             // The second circle with arrows on the other side and higher up, for the other finger.
             sideCircle.gameObject.SetActive(true);
@@ -337,6 +349,7 @@ public partial class ScrollyGame
             circle.anchoredPosition = waiting;
             circle.localScale = Vector3.one * pulse;
             trackCircleFaces[0].color = Ui.Gold;
+            trackCircleLabels[0].color = Ui.OnGold;
             holdTag.anchoredPosition = waiting + new Vector2(0, 66);
             ShowCaption("Hold with one finger", new Vector2(0, trackTopY + 46));
         }

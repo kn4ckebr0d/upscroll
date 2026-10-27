@@ -87,6 +87,19 @@ public static class Progress
         set => PlayerPrefs.SetString("giftDay", value);
     }
 
+    /// How many daily gifts you've opened, and how many since the last Ultra or better (for the pity rule).
+    public static int GiftsOpened
+    {
+        get => PlayerPrefs.GetInt("giftsOpened", 0);
+        set => PlayerPrefs.SetInt("giftsOpened", value);
+    }
+
+    public static int GiftsSinceUltra
+    {
+        get => PlayerPrefs.GetInt("giftsSinceUltra", 0);
+        set => PlayerPrefs.SetInt("giftsSinceUltra", value);
+    }
+
     /// A seed for one day's gift, the same all day (so leaving and coming back can't reroll it).
     public static int GiftSeed(string day)
     {

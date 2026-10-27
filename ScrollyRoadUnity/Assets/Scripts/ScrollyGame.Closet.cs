@@ -73,7 +73,11 @@ public partial class ScrollyGame
 
     IEnumerable<Cosmetic> AllItems => ClosetTabs.SelectMany(Cosmetics.OfKind);
 
-    void DressClimber() => climber.Build(EquippedCharacter, EquippedHat, EquippedBackpack, EquippedCharm);
+    void DressClimber()
+    {
+        climber.Build(EquippedCharacter, EquippedHat, EquippedBackpack, EquippedCharm);
+        Voxel.Outline(climber.transform, Tuning.OutlineWidth);   // stands out on any wall
+    }
 
     // MARK: - Owning things
 
@@ -427,7 +431,7 @@ public partial class ScrollyGame
         var tapArea = Ui.Rect(stage, "Tap the gift", Center, new Vector2(0, 40), new Vector2(360, 360));
         giftTap = new HudButton { Rect = tapArea, Action = TapGift };
         buttons.Add(giftTap);
-        giftAction = MakeButton(stage, Bottom, new Vector2(0, 70), new Vector2(260, 60), Ui.Gold, Ui.GoldShade, Color.white, GiftAction);
+        giftAction = MakeButton(stage, Bottom, new Vector2(0, 70), new Vector2(260, 60), Ui.Gold, Ui.GoldShade, Ui.OnGold, GiftAction);
         giftAction.Label.fontSize = 22;
     }
 
@@ -570,7 +574,7 @@ public partial class ScrollyGame
         else
         {
             SetClosetAction("Daily gift only", Ui.Grey, Ui.GreyShade);
-            closetHint.text = "Look out for it in a rare gift";
+            closetHint.text = $"Can come out of a {GiftTierFor(closetSelected.Rarity)} daily gift";
         }
     }
 
@@ -581,6 +585,8 @@ public partial class ScrollyGame
         closetAction.Label.text = label;
         closetAction.Face.color = face;
         closetAction.Lip.color = lip;
+        // Readable on every face: white on blue, dark brown on gold, brown on grey.
+        closetAction.Label.color = face == Ui.Blue ? Color.white : face == Ui.Gold ? Ui.OnGold : Ui.Brown;
     }
 
     void ClosetAction()
@@ -752,6 +758,7 @@ public partial class ScrollyGame
         // Today's upgrades and prize come from a seed fixed for the day: leaving and coming back
         // (or restarting the app) replays the same gift, so rerolling gets you nothing.
         giftRolls = new System.Random(Progress.GiftSeed(Today));
+        PlanGift();
         nextSuspenseAt = Time.unscaledTime + 0.5f;
         FillGiftCard(null, null);
         StartCoroutine(Pop(giftCard, 0.85f));
@@ -844,7 +851,7 @@ public partial class ScrollyGame
         ClearGiftCard();
         var face = GiftFace;
         var banner = Ui.Pill(face, Top, new Vector2(0, -56), new Vector2(240, 56), Ui.Gold, Ui.GoldShade, 5);
-        Ui.Label(banner.transform, "DAILY GIFT", 28, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        Ui.Label(banner.transform, "DAILY GIFT", 28, Ui.OnGold, TextAnchor.MiddleCenter);
         giftTap.Rect.gameObject.SetActive(giftState == GiftState.Wrapped);
         // No way out while it's wrapped: open it first.
         giftAction.Rect.gameObject.SetActive(giftState is GiftState.Opened or GiftState.Waiting);
@@ -866,6 +873,10 @@ public partial class ScrollyGame
                 giftTierText = Ui.Label(pill.transform, "", 24, Color.white, TextAnchor.MiddleCenter, shadow: true);
                 giftTierPill.gameObject.SetActive(false);
                 TextPill(face, new Vector2(0, -175), "Tap it 3 times!", 22);
+                // The odds, plainly: it's free, but nothing random should be a mystery.
+                var odds = Ui.Label(Ui.Rect(face, "Odds", Bottom, new Vector2(0, 30), new Vector2(340, 20)),
+                    $"Each tap: {Tuning.GiftUpgradeOne * 100:0}% chance of +1 tier, {Tuning.GiftUpgradeTwo * 100:0}% of +2", 13, Ui.Brown);
+                odds.color = new Color(Ui.Brown.r, Ui.Brown.g, Ui.Brown.b, 0.75f);
                 for (int d = 0; d < GiftTaps; d++)
                     giftDots.Add(Ui.Circle(face, Center, new Vector2((d - 1) * 40, -228), 24, Ui.Cream));
                 break;
@@ -890,7 +901,7 @@ public partial class ScrollyGame
                     StartCoroutine(Pop(Ui.Picture(face, Center, new Vector2(0, 50), new Vector2(170, 170), rewardIcon, Color.white).rectTransform, 0.3f));
                 else StartCoroutine(Pop(Ui.Coin(face, Center, new Vector2(0, 50), 170).rectTransform, 0.3f));
                 TextPill(face, new Vector2(0, -160), rewardText, 28, 54);
-                SetGiftButton("Collect", Ui.Gold, Ui.GoldShade, Color.white);
+                SetGiftButton("Collect", Ui.Gold, Ui.GoldShade, Ui.OnGold);
                 Confetti(110 + giftTier * 35);
                 break;
 
@@ -928,8 +939,7 @@ public partial class ScrollyGame
         Haptics.Tick(0.4f + 0.2f * giftTapsDone);
 
         // Each tap has a chance to upgrade the gift a tier, now and then two (rolled from today's seed).
-        double roll = giftRolls.NextDouble();
-        int steps = roll < 0.05 ? 2 : roll < 0.33 ? 1 : 0;
+        int steps = giftSteps[giftTapsDone - 1];
         if (steps > 0 && giftTier < GiftTiers.Length - 1)
         {
             giftTier = Mathf.Min(GiftTiers.Length - 1, giftTier + steps);
@@ -954,6 +964,8 @@ public partial class ScrollyGame
         giftState = GiftState.Opening;
         giftTap.Rect.gameObject.SetActive(false);
         Progress.GiftDay = Today;
+        Progress.GiftsOpened++;
+        Progress.GiftsSinceUltra = giftTier >= 3 ? 0 : Progress.GiftsSinceUltra + 1;
         yield return new WaitForSecondsRealtime(0.35f);
         Synth.Instance.GiftRiser(1.1f);
         for (float t = 0; t < 1.1f; t += Time.unscaledDeltaTime)
@@ -1017,9 +1029,46 @@ public partial class ScrollyGame
         for (int rarity = tier - 1; rarity >= 0; rarity--)
         {
             var options = pool.Where(i => (int)i.Rarity == rarity || (tier == 4 && rarity == 3 && i.Rarity == Rarity.Legendary)).ToList();
-            if (options.Count > 0) return options[giftRolls.Next(options.Count)];
+            if (options.Count == 0) continue;
+            // Items you can only get from the gift come up three times as often as ones you could also buy.
+            int total = 0;
+            foreach (var option in options) total += GiftWeight(option);
+            int pick = giftRolls.Next(total);
+            foreach (var option in options)
+            {
+                pick -= GiftWeight(option);
+                if (pick < 0) return option;
+            }
         }
         return null;
+    }
+
+    static int GiftWeight(Cosmetic item) => item.Price <= 0 && item.Achievement == null ? 3 : 1;
+
+    /// The gift tier that can hold an item of this rarity ("rare" for a common item, ... "legendary").
+    static string GiftTierFor(Rarity rarity) => GiftTiers[Mathf.Min((int)rarity + 1, GiftTiers.Length - 1)].TrimEnd('!').ToLower();
+
+    readonly int[] giftSteps = new int[GiftTaps];
+
+    /// Rolls today's three taps up front (from the day's seed). Your very first gift always ends up Mega,
+    /// and after Tuning.GiftPity gifts without an Ultra or better, the next one is Ultra.
+    void PlanGift()
+    {
+        int tier = 0;
+        for (int i = 0; i < GiftTaps; i++)
+        {
+            double roll = giftRolls.NextDouble();
+            giftSteps[i] = roll < Tuning.GiftUpgradeTwo ? 2 : roll < Tuning.GiftUpgradeTwo + Tuning.GiftUpgradeOne ? 1 : 0;
+            tier += giftSteps[i];
+        }
+        int floor = Progress.GiftsOpened == 0 ? 2 : Progress.GiftsSinceUltra >= Tuning.GiftPity - 1 ? 3 : 0;
+        // Short of the floor: the last taps upgrade more (so the suspense still builds to the end).
+        for (int i = GiftTaps - 1; i >= 0 && tier < floor; i--)
+        {
+            int add = Mathf.Min(2 - giftSteps[i], floor - tier);
+            giftSteps[i] += add;
+            tier += add;
+        }
     }
 
     /// Every frame while the gift is open: the box bobs and turns, trembles more with every tap, squashes

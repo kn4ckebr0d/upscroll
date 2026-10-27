@@ -11,8 +11,9 @@ public static class Ui
     public static readonly Color BrownSoft = Voxel.Hex(0xA48F6C);
     public static readonly Color Blue = Voxel.Hex(0x4C8FE8);
     public static readonly Color BlueShade = Voxel.Hex(0x3468B8);
-    public static readonly Color Gold = Voxel.Hex(0xE2B24C);
-    public static readonly Color GoldShade = Voxel.Hex(0xB98A2B);
+    public static readonly Color Gold = Voxel.Hex(0xF4C24A);      // bright, with dark text on it (white on gold is hard to read)
+    public static readonly Color GoldShade = Voxel.Hex(0xD39A22);
+    public static readonly Color OnGold = Voxel.Hex(0x5A4127);    // text and icons on gold
     public static readonly Color Grey = Voxel.Hex(0xC9C1AE);
     public static readonly Color GreyShade = Voxel.Hex(0xA69D88);
 

@@ -87,12 +87,12 @@ public partial class ScrollyGame
         heightText = Ui.Label(card.transform, "0", 38, Ui.Brown);
         var bubble = Ui.Pill(safeRect, Top, new Vector2(0, -70), new Vector2(214, 26), Ui.Gold, Ui.GoldShade, 3);
         nextBubble = (RectTransform)bubble.transform.parent;
-        nextText = Ui.Label(bubble.transform, "", 14, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        nextText = Ui.Label(bubble.transform, "", 14, Ui.OnGold, TextAnchor.MiddleCenter);
 
         // The best height only shows up when you beat it (the flag on the wall shows it before that).
         var best = Ui.Pill(safeRect, Top, new Vector2(0, -100), new Vector2(170, 28), Ui.Gold, Ui.GoldShade, 3);
         bestPill = (RectTransform)best.transform.parent;
-        bestText = Ui.Label(best.transform, "", 15, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        bestText = Ui.Label(best.transform, "", 15, Ui.OnGold, TextAnchor.MiddleCenter);
         bestPill.gameObject.SetActive(false);
 
         // Coins: a blue pill with the coin as a tab on its left edge; hearts for extra lives under it.
@@ -158,7 +158,7 @@ public partial class ScrollyGame
         {
             // A small gold price tag with a coin on the right side of the button.
             var tag = Ui.Pill(faceImage.transform, new Vector2(1, 0.5f), new Vector2(-48, 0), new Vector2(80, size.y - 16), Ui.Gold, Ui.GoldShade, 2);
-            button.Price = Ui.Label(tag.transform, "", 17, Color.white, TextAnchor.MiddleRight, shadow: true);
+            button.Price = Ui.Label(tag.transform, "", 17, Ui.OnGold, TextAnchor.MiddleRight);
             button.Price.rectTransform.offsetMax = new Vector2(-10, 0);
             Ui.Coin(tag.transform.parent, new Vector2(0, 0.5f), new Vector2(14, 0), 24);
         }

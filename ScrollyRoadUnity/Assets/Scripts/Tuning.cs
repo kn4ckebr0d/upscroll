@@ -37,6 +37,7 @@ public static class Tuning
     // Mobs
     public const float SafeStartMeters = 8f;             // no mobs below this
     public const float ZoneSafeMeters = 5f;              // no mobs this close above a checkpoint
+    public const float OutlineWidth = 0.035f;            // the cream rim around the climber and mobs, in meters
     public const float LaneHalfSpan = 7f;                // mobs wrap around between -7 and +7 m
     public const float HitStop = 0.12f;                  // freeze frame when a mob hits you
 
@@ -62,12 +63,17 @@ public static class Tuning
     public const float MeteorWarning = 1.3f;             // seconds between the red mark and the impact
     public const float MeteorIntervalStart = 2.4f;       // seconds between meteors at the bottom of the storm...
     public const float MeteorIntervalEnd = 1.3f;         // ...and at the top
-    public const int BossReward = 50;                    // coins for reaching the rocket
+    public const int BossReward = 200;                   // coins for reaching the rocket
 
     // Shop
-    public const int ExtraLifePrice = 60;
+    public const int ExtraLifePrice = 40;
     public const int MaxExtraLives = 3;
-    public const int ContinueBasePrice = 30;             // doubles with each continue in the same run
+    public const int ContinueBasePrice = 25;             // plus a coin per 10 m of height; doubles with each continue in a run
+    public const float ContinueMetersPerCoin = 10f;
+    public const int MaxContinuesPerRun = 3;
+    public const int WelcomeCoins = 100;                 // after the first tutorial, so there's something to buy right away
+    public const int GiftPity = 30;                      // after this many gifts without an Ultra or better, the next one is Ultra
+    public const float GiftUpgradeOne = 0.28f, GiftUpgradeTwo = 0.05f;   // each tap: chance of +1 tier, and of +2
     public const float InvulnerableTime = 1.5f;          // after using a life or continuing
 
     // Sound
