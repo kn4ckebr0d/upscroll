@@ -64,7 +64,9 @@ public static class Voxel
         var disc = new GameObject("face");
         disc.transform.SetParent(holder.transform, false);
         disc.transform.localRotation = Quaternion.Euler(90, 0, 0);
-        disc.transform.localScale = new Vector3(diameter, thickness / 2f, diameter);   // the cylinder mesh is 2 units tall
+        // Sized from the mesh itself (Unity's built-in cylinder isn't the same size as the old primitive).
+        var size = cylinderMesh.bounds.size;
+        disc.transform.localScale = new Vector3(diameter / size.x, thickness / size.y, diameter / size.z);
         disc.AddComponent<MeshFilter>().sharedMesh = cylinderMesh;
         disc.AddComponent<MeshRenderer>().sharedMaterial = material;
         return holder;
