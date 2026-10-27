@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
+using Unity.Services.CloudCode;
 using Unity.Services.Core;
 using Unity.Services.Leaderboards;
 using Unity.Services.Leaderboards.Exceptions;
@@ -9,12 +10,13 @@ using Unity.Services.Leaderboards.Models;
 using UnityEngine;
 
 /// The online part: Unity Gaming Services. Every phone signs in anonymously (no account screen), gets a
-/// display name, and posts its heights to two leaderboards: this week and all time. Each score carries the
-/// climber's look (character, hat, backpack, charm, tag) so others see your banner. Everything here fails
+/// display name, and posts its heights to the leaderboards: this week, all time, and your league (about 40
+/// players, a weekly board split into buckets). A server script checks each height first. Each score carries
+/// the climber's look (character, hat, backpack, charm, tag) so others see your banner. Everything here fails
 /// softly: offline or not set up, the game plays on and the leaderboard screen says why.
 public static class Online
 {
-    public const string Weekly = "weekly", AllTime = "alltime";
+    public const string Weekly = "weekly", AllTime = "alltime", League = "league";
 
     public enum State { Off, Connecting, Ready, NotSetUp, Offline }
     public static State Status { get; private set; }
@@ -84,8 +86,8 @@ public static class Online
 
     static bool IsSetupProblem(Exception e) =>
         e is LeaderboardsException le
-            ? le.Reason is LeaderboardsExceptionReason.ProjectIdMissing or LeaderboardsExceptionReason.LeaderboardNotFound
-            : e.Message.IndexOf("project", StringComparison.OrdinalIgnoreCase) >= 0;
+            ? le.Reason is LeaderboardsExceptionReason.ProjectIdMissing
+            : e.Message.IndexOf("project id", StringComparison.OrdinalIgnoreCase) >= 0;
 
     // MARK: - Names
 
@@ -134,21 +136,50 @@ public static class Online
 
     // MARK: - Scores
 
-    /// Posts a run's height to both boards. Each board keeps your best. Returns your weekly row (or null).
-    public static async Task<Row> Submit(int meters)
+    /// What a run's height did: your rank this week, and in your league (0 when there's none).
+    public class RunResult
+    {
+        public int WeeklyRank, LeagueRank;
+    }
+
+    /// Boards that don't exist in the cloud project (the league is optional): asked once, then skipped.
+    static readonly HashSet<string> missing = new();
+    public static bool HasBoard(string board) => !missing.Contains(board);
+
+    /// Tells the server a run starts now, so it can tell later whether a height was possible in the time.
+    public static async void StartRun()
+    {
+        if (Status != State.Ready) return;
+        try { await CloudCodeService.Instance.CallEndpointAsync("StartRun", new Dictionary<string, object>()); }
+        catch (Exception e) { Debug.LogWarning($"Online: start run: {e.Message}"); }
+    }
+
+    /// Posts a run's height. The server (Cloud Code, "SubmitScore") checks it's possible in the time since
+    /// StartRun and posts it to every board, each keeping your best. Until that script is deployed, the
+    /// game posts directly.
+    public static async Task<RunResult> Submit(int meters)
     {
         if (meters <= 0 || !await Connect()) return null;
-        var options = new AddPlayerScoreOptions
+        var look = new Dictionary<string, string>
         {
-            Metadata = new Dictionary<string, string>
-            {
-                ["c"] = Progress.Character, ["h"] = Progress.Hat, ["b"] = Progress.Backpack, ["ch"] = Progress.Charm, ["t"] = Progress.Tag,
-            },
+            ["c"] = Progress.Character, ["h"] = Progress.Hat, ["b"] = Progress.Backpack, ["ch"] = Progress.Charm, ["t"] = Progress.Tag,
         };
         try
         {
-            await LeaderboardsService.Instance.AddPlayerScoreAsync(AllTime, meters, options);
-            return ToRow(await LeaderboardsService.Instance.AddPlayerScoreAsync(Weekly, meters, options));
+            var ranks = await CloudCodeService.Instance.CallEndpointAsync<Dictionary<string, int>>("SubmitScore",
+                new Dictionary<string, object> { ["meters"] = meters, ["look"] = look });
+            foreach (var board in new[] { Weekly, AllTime, League })
+                if (!ranks.ContainsKey(board)) missing.Add(board);
+            return new RunResult { WeeklyRank = ranks.GetValueOrDefault(Weekly), LeagueRank = ranks.GetValueOrDefault(League) };
+        }
+        catch (CloudCodeException e) when (e.Reason == CloudCodeExceptionReason.NotFound)
+        {
+            return await SubmitDirectly(meters, look);   // the check isn't deployed yet
+        }
+        catch (CloudCodeException e) when (e.Reason == CloudCodeExceptionReason.ScriptError)
+        {
+            Debug.LogWarning($"Online: height refused: {e.Message}");
+            return null;
         }
         catch (Exception e)
         {
@@ -157,20 +188,47 @@ public static class Online
         }
     }
 
-    /// The top of a board.
+    static async Task<RunResult> SubmitDirectly(int meters, Dictionary<string, string> look)
+    {
+        var options = new AddPlayerScoreOptions { Metadata = look };
+        var result = new RunResult();
+        foreach (var board in new[] { AllTime, League, Weekly })
+        {
+            if (missing.Contains(board)) continue;
+            try
+            {
+                var entry = await LeaderboardsService.Instance.AddPlayerScoreAsync(board, meters, options);
+                if (board == Weekly) result.WeeklyRank = entry.Rank + 1;
+                if (board == League) result.LeagueRank = entry.Rank + 1;
+            }
+            catch (Exception e)
+            {
+                Fail(e, board);
+                if (Status != State.Ready) return null;
+            }
+        }
+        return result;
+    }
+
+    /// The top of a board (for the league: your league). Empty for a league you haven't joined yet
+    /// (you join with your first height of the week); null when it can't be read.
     public static async Task<List<Row>> Top(string board, int count = 50)
     {
         var rows = new List<Row>();
-        if (!await Connect()) return null;
+        if (missing.Contains(board) || !await Connect()) return null;
         try
         {
             var page = await LeaderboardsService.Instance.GetScoresAsync(board, new GetScoresOptions { Limit = count, IncludeMetadata = true });
             foreach (var entry in page.Results) rows.Add(ToRow(entry));
             return rows;
         }
+        catch (LeaderboardsException e) when (e.Reason is LeaderboardsExceptionReason.ScoreSubmissionRequired or LeaderboardsExceptionReason.EntryNotFound)
+        {
+            return rows;
+        }
         catch (Exception e)
         {
-            Fail(e);
+            Fail(e, board);
             return null;
         }
     }
@@ -178,20 +236,52 @@ public static class Online
     /// Your own row on a board, or null if you haven't posted there (yet, or this week).
     public static async Task<Row> Mine(string board)
     {
-        if (!await Connect()) return null;
+        if (missing.Contains(board) || !await Connect()) return null;
         try
         {
             return ToRow(await LeaderboardsService.Instance.GetPlayerScoreAsync(board, new GetPlayerScoreOptions { IncludeMetadata = true }));
         }
-        catch (LeaderboardsException e) when (e.Reason == LeaderboardsExceptionReason.EntryNotFound)
+        catch (LeaderboardsException e) when (e.Reason is LeaderboardsExceptionReason.EntryNotFound or LeaderboardsExceptionReason.ScoreSubmissionRequired)
         {
             return null;
         }
         catch (Exception e)
         {
-            Fail(e);
+            Fail(e, board);
             return null;
         }
+    }
+
+    /// Up to `count` players just above you on a board, closest first: the ones to beat next. If you're not on
+    /// the board yet, the lowest ones on it.
+    public static async Task<List<Row>> Rivals(string board, int count)
+    {
+        if (missing.Contains(board) || !await Connect()) return null;
+        var rivals = new List<Row>();
+        try
+        {
+            var range = await LeaderboardsService.Instance.GetPlayerRangeAsync(board, new GetPlayerRangeOptions { RangeLimit = count, IncludeMetadata = true });
+            int myRank = int.MaxValue;
+            foreach (var entry in range.Results)
+                if (entry.PlayerId == PlayerId) myRank = entry.Rank;
+            foreach (var entry in range.Results)
+                if (entry.Rank < myRank) rivals.Add(ToRow(entry));
+        }
+        catch (LeaderboardsException e) when (e.Reason is LeaderboardsExceptionReason.EntryNotFound or LeaderboardsExceptionReason.ScoreSubmissionRequired)
+        {
+            var top = await Top(board == League ? Weekly : board, 50);
+            if (top == null) return null;
+            rivals.AddRange(top.GetRange(Math.Max(0, top.Count - count), Math.Min(count, top.Count)));
+        }
+        catch (Exception e)
+        {
+            Fail(e, board);
+            return null;
+        }
+        rivals.RemoveAll(r => r.PlayerId == PlayerId);
+        rivals.Sort((a, b) => a.Meters.CompareTo(b.Meters));
+        if (rivals.Count > count) rivals.RemoveRange(count, rivals.Count - count);
+        return rivals;
     }
 
     static Row ToRow(LeaderboardEntry entry) => entry == null ? null : new Row
@@ -203,10 +293,16 @@ public static class Online
         Look = Look.From(entry.Metadata),
     };
 
-    static void Fail(Exception e)
+    static void Fail(Exception e, string board = null)
     {
+        if (e is LeaderboardsException { Reason: LeaderboardsExceptionReason.LeaderboardNotFound } && board != null)
+        {
+            missing.Add(board);   // e.g. no league board in this project: carry on without it
+            return;
+        }
         if (IsSetupProblem(e)) Status = State.NotSetUp;
-        else if (e is LeaderboardsException { Reason: LeaderboardsExceptionReason.NoInternetConnection }) Status = State.Offline;
+        else if (e is LeaderboardsException { Reason: LeaderboardsExceptionReason.NoInternetConnection }
+                 || e is CloudCodeException { Reason: CloudCodeExceptionReason.NoInternetConnection }) Status = State.Offline;
         Debug.LogWarning($"Online: {e.Message}");
     }
 }

@@ -266,6 +266,7 @@ public partial class ScrollyGame
         UpdateBoard();
         CheckAchievements();
         UpdateBestFlag();
+        UpdateRivalFlags();
         UpdateScreens();
         UpdateHints();
         UpdateStaminaBar();

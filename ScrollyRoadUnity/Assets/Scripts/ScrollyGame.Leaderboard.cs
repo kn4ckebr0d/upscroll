@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// The leaderboard, full screen: this week and all time. Every row is a banner in that player's tag, with
+/// The leaderboard, full screen: your league (about 40 players, this week), everyone this week, and all time. Every row is a banner in that player's tag, with
 /// their character and hat, their name and their best height. Your own banner sits on top, where you can
 /// change your name. After a run, the results screen shows where you landed this week.
 public partial class ScrollyGame
@@ -23,7 +23,8 @@ public partial class ScrollyGame
     int boardRequest;              // answers to older requests are ignored
     TouchScreenKeyboard nameKeyboard;
     List<Online.Row> boardDemo;    // -scrollyBoardDemo: made-up players, to test without the service
-    int runRank;                   // this week's rank after the last run, 0 until the leaderboard answers
+    Online.RunResult runResult;    // where the last run put you, null until the leaderboard answers
+    static readonly string[] BoardTabs = { Online.League, Online.Weekly, Online.AllTime };
 
     // MARK: - Building
 
@@ -37,15 +38,16 @@ public partial class ScrollyGame
         close.Label.gameObject.SetActive(false);
         Ui.Label(Ui.Rect(safe, "Title", Top, new Vector2(0, -32), new Vector2(220, 40)), "Leaderboard", 30, Ui.Brown);
 
-        string[] boards = { Online.Weekly, Online.AllTime };
-        string[] labels = { "This week", "All time" };
-        for (int i = 0; i < boards.Length; i++)
+        string[] labels = { "League", "This week", "All time" };
+        for (int i = 0; i < BoardTabs.Length; i++)
         {
-            string board = boards[i];
-            var tab = MakeButton(safe, Top, new Vector2((i - 0.5f) * 156, -88), new Vector2(148, 44), Ui.Blue, Ui.BlueShade, Color.white, () => ShowBoardTab(board));
+            string board = BoardTabs[i];
+            var tab = MakeButton(safe, Top, Vector2.zero, new Vector2(108, 44), Ui.Blue, Ui.BlueShade, Color.white, () => ShowBoardTab(board));
             tab.Label.text = labels[i];
+            tab.Label.fontSize = 16;
             boardTabs.Add(tab);
         }
+        LayoutBoardTabs();
 
         // Your banner, and changing your name.
         boardMine = Ui.Rect(safe, "Mine", Top, new Vector2(0, -152), Vector2.zero);
@@ -92,8 +94,23 @@ public partial class ScrollyGame
         nameKeyboard = null;
         if (!open) return;
         boardNameHint.text = "";
-        ShowBoardTab(Online.Weekly);
+        LayoutBoardTabs();
+        ShowBoardTab(Online.HasBoard(Online.League) ? Online.League : Online.Weekly);
         StartCoroutine(Pop((RectTransform)boardMine.parent, 0.94f));
+    }
+
+    /// The tabs in a row; the league's only shows when the game's cloud project has a league board.
+    void LayoutBoardTabs()
+    {
+        var shown = new List<int>();
+        for (int i = 0; i < BoardTabs.Length; i++)
+        {
+            bool has = Online.HasBoard(BoardTabs[i]);
+            boardTabs[i].Rect.gameObject.SetActive(has);
+            if (has) shown.Add(i);
+        }
+        for (int k = 0; k < shown.Count; k++)
+            boardTabs[shown[k]].Rect.anchoredPosition = new Vector2((k - (shown.Count - 1) / 2f) * 116, -88);
     }
 
     void ShowBoardTab(string board)
@@ -101,7 +118,7 @@ public partial class ScrollyGame
         boardShown = board;
         for (int i = 0; i < boardTabs.Count; i++)
         {
-            bool on = (i == 0) == (board == Online.Weekly);
+            bool on = BoardTabs[i] == board;
             boardTabs[i].Face.color = on ? Ui.Blue : Ui.CreamShade;
             boardTabs[i].Lip.color = on ? Ui.BlueShade : Ui.GreyShade;
             boardTabs[i].Label.color = on ? Color.white : Ui.Brown;
@@ -134,6 +151,13 @@ public partial class ScrollyGame
         }
         if (request != boardRequest || !boardPanel.activeSelf) return;   // a newer request, or closed meanwhile
 
+        if (rows == null && !Online.HasBoard(board))
+        {
+            // No league board in this project (yet): carry on without the tab.
+            LayoutBoardTabs();
+            ShowBoardTab(Online.Weekly);
+            return;
+        }
         if (rows == null)
         {
             SetBoardStatus(Online.Status == Online.State.NotSetUp
@@ -142,7 +166,12 @@ public partial class ScrollyGame
             boardRetry.Rect.gameObject.SetActive(Online.Status != Online.State.NotSetUp);
             return;
         }
-        SetBoardStatus(rows.Count > 0 ? "" : board == Online.Weekly ? "Nobody has climbed this week yet.\nBe the first!" : "Nobody has climbed yet.\nBe the first!");
+        SetBoardStatus(rows.Count > 0 ? "" : board switch
+        {
+            Online.League => "Climb once this week to join\na league of 40 climbers!",
+            Online.Weekly => "Nobody has climbed this week yet.\nBe the first!",
+            _ => "Nobody has climbed yet.\nBe the first!",
+        });
         string myId = boardDemo != null ? "me" : Online.PlayerId;
         for (int i = 0; i < rows.Count; i++)
         {
@@ -355,19 +384,20 @@ public partial class ScrollyGame
     /// Posts the run's height, then shows this week's rank on the results screen.
     async void SubmitRun(int meters)
     {
-        runRank = 0;
-        var row = await Online.Submit(meters);
-        if (row == null) return;
-        runRank = row.Rank;
+        runResult = null;
+        var result = await Online.Submit(meters);
+        if (result == null) return;
+        runResult = result;
         if (gameOverPanel.activeSelf && !resultsRevealing) ShowRunRank();
+        FetchRivals();   // the ones to beat have changed
     }
 
     bool resultsRevealing;
 
     void ShowRunRank()
     {
-        if (runRank <= 0) return;
-        runRankButton.Label.text = $"#{runRank:N0} this week";
+        if (runResult == null || runResult.WeeklyRank <= 0 && runResult.LeagueRank <= 0) return;
+        runRankButton.Label.text = runResult.LeagueRank > 0 ? $"#{runResult.LeagueRank} in your league" : $"#{runResult.WeeklyRank:N0} this week";
         if (runRankButton.Rect.gameObject.activeSelf) return;
         runRankButton.Rect.gameObject.SetActive(true);
         StartCoroutine(Pop(runRankButton.Rect, 0.6f));

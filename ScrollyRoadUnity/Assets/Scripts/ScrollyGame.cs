@@ -254,6 +254,7 @@ public partial class ScrollyGame : MonoBehaviour
     void ResetWorld()
     {
         StopAllCoroutines();
+        ClearRivalFlags();
         if (world != null) Destroy(world.gameObject);
         world = new GameObject("World").transform;
         rows.Clear();
@@ -280,13 +281,14 @@ public partial class ScrollyGame : MonoBehaviour
         climberX = ColumnX(column);
         runBest = 0;
         runCoins = 0;
-        runRank = 0;
+        runResult = null;
         continuesUsed = 0;
         invulnerableUntil = 0;
         toneStep = 0;
         lastBlipY = anchorY;
         bestAtStart = Progress.Best;
         PlaceBestFlag();
+        FetchRivals();   // the players just above you plant their flags when the leaderboard answers
         ResetStamina();
         PlaceGroundRocket(PlanetBase(PlanetIndex(anchorY + 0.01f)));
 
@@ -677,6 +679,7 @@ public partial class ScrollyGame : MonoBehaviour
     void StartRun()
     {
         phase = Phase.Playing;
+        Online.StartRun();   // the server notes the time, to check the height at the end
         ShowTitle(false);
         ShowZoneStamp(ZoneIndex(anchorY + 0.01f), collect: false);
     }
