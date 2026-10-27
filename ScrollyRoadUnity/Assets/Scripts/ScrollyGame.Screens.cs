@@ -7,8 +7,9 @@ using UnityEngine.UI;
 public partial class ScrollyGame
 {
     GameObject titleGroup, settingsPanel, continuePanel, gameOverPanel;
-    RectTransform continueCard, resultsCard, settingsCard, titleBest;
-    Text titleBestText, continueHeight, gameOverScore, gameOverDelta, gameOverCoins;
+    RectTransform continueCard, resultsCard, settingsCard;
+    HudButton titleBoardButton, runRankButton;
+    Text continueHeight, gameOverScore, gameOverDelta, gameOverCoins;
     RectTransform gameOverBest, stampRow, stampBadge, lifePriceTag;
     Text stampBadgeText, lifePriceText;
     GameObject stampsLabel, noStampsLabel;
@@ -22,6 +23,7 @@ public partial class ScrollyGame
     {
         get
         {
+            if (boardPanel != null && boardPanel.activeSelf) return (RectTransform)boardPanel.transform;
             if (settingsPanel != null && settingsPanel.activeSelf) return (RectTransform)settingsPanel.transform;
             if (bookPanel != null && bookPanel.activeSelf) return (RectTransform)bookPanel.transform;
             if (closetPanel != null && closetPanel.activeSelf) return (RectTransform)closetPanel.transform;
@@ -39,6 +41,7 @@ public partial class ScrollyGame
         BuildStampBook();
         BuildCloset();
         BuildGift();
+        BuildBoard();
         BuildSettings();
     }
 
@@ -56,9 +59,11 @@ public partial class ScrollyGame
         var ribbon = Ui.Pill(t, Center, new Vector2(118, 208), new Vector2(76, 28), Ui.Blue, Ui.BlueShade, 3);
         Ui.Label(ribbon.transform, "alpha", 15, Color.white);
         ribbon.transform.parent.localRotation = Quaternion.Euler(0, 0, -8);
-        var best = Ui.Pill(t, Center, new Vector2(0, 90), new Vector2(150, 30), Ui.Blue, Ui.BlueShade, 3);
-        titleBest = (RectTransform)best.transform.parent;
-        titleBestText = Ui.Label(best.transform, "", 16, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        // Your best, which is also the way into the leaderboard.
+        titleBoardButton = MakeButton(t, Center, new Vector2(0, 84), new Vector2(210, 44), Ui.Blue, Ui.BlueShade, Color.white,
+            () => ShowBoard(true), icon: Ui.Icon("trophy"));
+        titleBoardButton.Label.fontSize = 17;
+        titleBoardButton.Label.gameObject.AddComponent<Shadow>().effectColor = new Color(0, 0, 0, 0.25f);
 
         // Settings live behind a gear, top left: secondary, out of the way.
         settingsButton = MakeRoundButton(t, TopLeft, new Vector2(34, -34), 48, Ui.Cream, Ui.CreamShade, Ui.Icon("gear"), Ui.BrownSoft,
@@ -118,8 +123,7 @@ public partial class ScrollyGame
         stampBadge.gameObject.SetActive(unseen > 0);
         stampBadgeText.text = unseen.ToString();
         giftBadge.gameObject.SetActive(GiftReady);
-        titleBest.gameObject.SetActive(Progress.Best > 0);
-        titleBestText.text = $"BEST {Progress.Best} m";
+        titleBoardButton.Label.text = Progress.Best > 0 ? $"BEST {Progress.Best} m" : "Leaderboard";
         SetToggle(soundToggle, Synth.Instance.Enabled);
         SetToggle(hapticsToggle, Haptics.Enabled);
         SetToggle(shakeToggle, Progress.ShakeOn);
@@ -364,6 +368,12 @@ public partial class ScrollyGame
         noStamps.lineSpacing = 1.05f;
         noStampsLabel = noStamps.gameObject;
 
+        // Where this run puts you this week (once the leaderboard answers), and the way to see it.
+        runRankButton = MakeButton(panel, Bottom, new Vector2(0, 152), new Vector2(240, 44), Ui.Cream, Ui.CreamShade, Ui.Brown,
+            () => ShowBoard(true), icon: Ui.Icon("trophy"));
+        runRankButton.Icon.color = Ui.Gold;
+        runRankButton.Rect.gameObject.SetActive(false);
+
         // Play again where the thumb is.
         playAgainButton = MakeButton(panel, Bottom, new Vector2(0, 72), new Vector2(300, 62), Ui.Blue, Ui.BlueShade, Color.white,
             PlayAgain, icon: Ui.Icon("replay"));
@@ -375,6 +385,7 @@ public partial class ScrollyGame
     void ShowGameOver(bool visible)
     {
         gameOverPanel.SetActive(visible);
+        runRankButton.Rect.gameObject.SetActive(false);
         if (!visible) return;
         HideMessages();
         RefreshShop();
@@ -383,6 +394,7 @@ public partial class ScrollyGame
 
     IEnumerator RevealResults()
     {
+        resultsRevealing = true;
         gameOverScore.text = "0";
         gameOverDelta.text = "";
         gameOverBest.gameObject.SetActive(false);
@@ -454,6 +466,10 @@ public partial class ScrollyGame
             yield return Pop(stamp.rectTransform, 1.8f);
             yield return new WaitForSeconds(0.06f);
         }
+
+        // Last, where this run puts you on this week's leaderboard (if it has answered by now).
+        resultsRevealing = false;
+        ShowRunRank();
     }
 }
 

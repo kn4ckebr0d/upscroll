@@ -45,10 +45,7 @@ public partial class ScrollyGame
     Cosmetic closetSelected;
     float achievementCheckAt;
 
-    // Scrolling the grid, with a rubber band at the ends.
-    int closetScrollTouch = -1;
-    bool closetScrolling;
-    float closetScrollStartY, closetContentStartY, closetScrollVelocity, closetLastScrollY;
+    ScrollArea closetScroll;   // the grid, with a rubber band at the ends
 
     // Spinning and zooming the preview.
     float inspectYaw, inspectYawVelocity, inspectZoom = 1, pinchStartDistance, pinchStartZoom;
@@ -237,11 +234,7 @@ public partial class ScrollyGame
         var panel = MakeModal("Closet");
         closetPanel = panel.gameObject;
         // Everything sits in the safe area: the header on top, a big preview stage, and the item sheet below.
-        var safe = Ui.Rect(panel, "Safe", Center, Vector2.zero, Vector2.zero);
-        var area = Screen.safeArea;
-        safe.anchorMin = new Vector2(area.xMin / Screen.width, area.yMin / Screen.height);
-        safe.anchorMax = new Vector2(area.xMax / Screen.width, area.yMax / Screen.height);
-        safe.offsetMin = safe.offsetMax = Vector2.zero;
+        var safe = Ui.SafeArea(panel);
         closetCard = safe;
 
         // The stage: your tag in a cream frame, behind everything else. Inspecting, it fills the screen.
@@ -290,6 +283,7 @@ public partial class ScrollyGame
         closetViewport.gameObject.AddComponent<RectMask2D>();
         closetContent = Ui.Rect(closetViewport, "Items", Top, Vector2.zero, new Vector2(GridWidth, 0));
         closetContent.pivot = new Vector2(0.5f, 1);
+        closetScroll = new ScrollArea(closetViewport, closetContent);
         closetHint = Ui.Label(Ui.Rect(t, "Hint", Bottom, new Vector2(0, 112), new Vector2(340, 22)), "", 14, Ui.BrownSoft);
         closetAction = MakeButton(safe, Bottom, new Vector2(0, 50), new Vector2(300, 60), Ui.Blue, Ui.BlueShade, Color.white, ClosetAction, withPrice: true);
         closetAction.Label.fontSize = 22;
@@ -414,11 +408,7 @@ public partial class ScrollyGame
         var panel = MakeModal("Gift");
         giftPanel = panel.gameObject;
         // Full screen, right on the backdrop, inside the safe area. What changes per state goes in giftCard.
-        var stage = Ui.Rect(panel, "Stage", Center, Vector2.zero, Vector2.zero);
-        var area = Screen.safeArea;
-        stage.anchorMin = new Vector2(area.xMin / Screen.width, area.yMin / Screen.height);
-        stage.anchorMax = new Vector2(area.xMax / Screen.width, area.yMax / Screen.height);
-        stage.offsetMin = stage.offsetMax = Vector2.zero;
+        var stage = Ui.SafeArea(panel, "Stage");
         giftCard = Ui.Rect(stage, "Content", Center, Vector2.zero, Vector2.zero);
         Ui.Stretch(giftCard);
         // A big invisible button over the gift, for tapping it open.
@@ -491,8 +481,7 @@ public partial class ScrollyGame
             closetCards.Add(card);
         }
         closetContent.sizeDelta = new Vector2(GridWidth, Mathf.CeilToInt(items.Count / (float)GridColumns) * CardStep + 8);
-        closetContent.anchoredPosition = Vector2.zero;
-        closetScrollVelocity = 0;
+        closetScroll.Reset();
 
         closetSelected = items.Find(Wearing) ?? items[0];
         RefreshCloset();
@@ -621,69 +610,6 @@ public partial class ScrollyGame
         RefreshCloset();
     }
 
-    // MARK: - Scrolling the grid
-
-    /// A finger on the grid: once it moves enough it scrolls (and the card it started on isn't tapped).
-    void DragClosetGrid(Touch touch)
-    {
-        if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began)
-        {
-            if (!RectTransformUtility.RectangleContainsScreenPoint(closetViewport, touch.screenPosition, null)) return;
-            closetScrollTouch = touch.touchId;
-            closetScrolling = false;
-            closetScrollStartY = closetLastScrollY = touch.screenPosition.y;
-            closetContentStartY = closetContent.anchoredPosition.y;
-            closetScrollVelocity = 0;
-            return;
-        }
-        if (touch.touchId != closetScrollTouch) return;
-        float scale = canvasRect.localScale.y;
-        float moved = (touch.screenPosition.y - closetScrollStartY) / scale;
-        if (!closetScrolling && Mathf.Abs(moved) > 12) closetScrolling = true;
-        if (!closetScrolling) return;
-        float max = MaxClosetScroll;
-        float y = closetContentStartY + moved;
-        // Past either end the grid stretches like a rubber band.
-        if (y < 0) y = -RubberBand(-y);
-        else if (y > max) y = max + RubberBand(y - max);
-        closetContent.anchoredPosition = new Vector2(0, y);
-        closetScrollVelocity = (touch.screenPosition.y - closetLastScrollY) / scale / Mathf.Max(Time.unscaledDeltaTime, 0.001f);
-        closetLastScrollY = touch.screenPosition.y;
-    }
-
-    float MaxClosetScroll => Mathf.Max(0, closetContent.sizeDelta.y - closetViewport.sizeDelta.y);
-
-    static float RubberBand(float distance) => (1 - 1 / (distance * 0.55f / 120 + 1)) * 120;
-
-    /// Ending a touch: was it a scroll (then no tap)?
-    bool EndClosetScroll(Touch touch)
-    {
-        if (touch.touchId != closetScrollTouch) return false;
-        closetScrollTouch = -1;
-        bool scrolled = closetScrolling;
-        closetScrolling = false;
-        return scrolled;
-    }
-
-    /// Glides on after a flick and springs back inside the ends.
-    void UpdateClosetScroll(float dt)
-    {
-        if (closetScrollTouch != -1 && closetScrolling) return;
-        float y = closetContent.anchoredPosition.y;
-        float max = MaxClosetScroll;
-        if (y < 0 || y > max)
-        {
-            closetScrollVelocity = 0;
-            y = Mathf.Lerp(y, Mathf.Clamp(y, 0, max), 1 - Mathf.Exp(-14 * dt));
-        }
-        else
-        {
-            y += closetScrollVelocity * dt;
-            closetScrollVelocity *= Mathf.Exp(-4 * dt);
-        }
-        closetContent.anchoredPosition = new Vector2(0, y);
-    }
-
     // MARK: - Spinning and zooming the preview
 
     int previewTouch = -1;
@@ -740,7 +666,7 @@ public partial class ScrollyGame
         if (closetPanel == null || !closetPanel.activeSelf) return;
         float dt = Time.unscaledDeltaTime;
         LayoutCloset();   // every frame: cheap, and right even while the screen size is still settling
-        UpdateClosetScroll(dt);
+        closetScroll.Update(dt);
         bool back = closetTab is CosmeticKind.Backpack or CosmeticKind.Charm;
         if (Time.unscaledTime - previewSpunAt > 4f)
         {

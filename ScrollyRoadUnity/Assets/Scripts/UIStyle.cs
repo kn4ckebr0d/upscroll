@@ -122,6 +122,17 @@ public static class Ui
         return rect;
     }
 
+    /// A rect covering the screen's safe area (clear of notches and home bars), inside a full-screen parent.
+    public static RectTransform SafeArea(Transform parent, string name = "Safe")
+    {
+        var rect = Rect(parent, name, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        var area = Screen.safeArea;
+        rect.anchorMin = new Vector2(area.xMin / Screen.width, area.yMin / Screen.height);
+        rect.anchorMax = new Vector2(area.xMax / Screen.width, area.yMax / Screen.height);
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+        return rect;
+    }
+
     public static void Stretch(RectTransform rect)
     {
         rect.anchorMin = Vector2.zero;

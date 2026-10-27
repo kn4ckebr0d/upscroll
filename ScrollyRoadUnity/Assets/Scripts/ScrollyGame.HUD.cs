@@ -53,11 +53,7 @@ public partial class ScrollyGame
         BuildStaminaBar();
         BuildBestTag();
 
-        safeRect = Ui.Rect(canvasRect, "SafeArea", Center, Vector2.zero, Vector2.zero);
-        var area = Screen.safeArea;
-        safeRect.anchorMin = new Vector2(area.xMin / Screen.width, area.yMin / Screen.height);
-        safeRect.anchorMax = new Vector2(area.xMax / Screen.width, area.yMax / Screen.height);
-        safeRect.offsetMin = safeRect.offsetMax = Vector2.zero;
+        safeRect = Ui.SafeArea(canvasRect, "SafeArea");
 
         BuildTopBar();
         BuildMessages();
@@ -234,6 +230,7 @@ public partial class ScrollyGame
 
         UpdateTutorial();
         UpdateCloset();
+        UpdateBoard();
         CheckAchievements();
         UpdateBestFlag();
         UpdateScreens();

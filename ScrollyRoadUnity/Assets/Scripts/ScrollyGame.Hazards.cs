@@ -225,6 +225,7 @@ public partial class ScrollyGame
         lastRunNewBest = lastRunMeters > bestAtStart;
         if (lastRunNewBest) Progress.Best = lastRunMeters;
         Progress.Save();
+        if (!autopilot && !god) SubmitRun(lastRunMeters);
         // First the one question that matters (keep going?), then the results.
         if (CanContinue && Progress.Coins >= ContinuePrice) ShowContinueOffer(true);
         else ShowGameOver(true);

@@ -61,7 +61,7 @@ public partial class ScrollyGame : MonoBehaviour
     int toneStep;
     float lastBlipY;
 
-    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
+    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyBoard, -scrollyBoardDemo, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
     // -scrollyShotDir <dir> -scrollyShots <n> -scrollyShotInterval <s> -scrollyShotDelay <s>
     bool autopilot;
     bool god;
@@ -175,6 +175,7 @@ public partial class ScrollyGame : MonoBehaviour
         BuildHUD();
         ParseTestArguments();
         ResetWorld();
+        _ = Online.Connect();   // in the background; the game never waits for it
     }
 
     void Update()
@@ -239,6 +240,7 @@ public partial class ScrollyGame : MonoBehaviour
         climberX = ColumnX(column);
         runBest = 0;
         runCoins = 0;
+        runRank = 0;
         continuesUsed = 0;
         invulnerableUntil = 0;
         toneStep = 0;
@@ -515,16 +517,17 @@ public partial class ScrollyGame : MonoBehaviour
             {
                 swipedTouches.Remove(touch.touchId);
                 bool wasButton = buttonTouches.Remove(touch.touchId);
-                bool scrolled = closetPanel.activeSelf && EndClosetScroll(touch);   // a scroll isn't a tap
+                bool scrolled = (closetPanel.activeSelf && closetScroll.End(touch)) || (boardPanel.activeSelf && boardScroll.End(touch));   // a scroll isn't a tap
                 if (wasButton && !scrolled) TryPressButton(touch.screenPosition, onRelease: true);
                 else if (touch.touchId == bookDragTouch) EndBookDrag(touch);
                 if (TutorialActive) TutorialTouchEnded(touch);
                 FingerLifted(touch.touchId);
                 continue;
             }
-            if (closetPanel.activeSelf) DragClosetGrid(touch);
+            if (closetPanel.activeSelf) closetScroll.Drag(touch, canvasRect.localScale.y);
+            if (boardPanel.activeSelf) boardScroll.Drag(touch, canvasRect.localScale.y);
             if (buttonTouches.Contains(touch.touchId)) continue;
-            if (closetPanel.activeSelf) continue;   // spinning, zooming or scrolling: not climbing
+            if (closetPanel.activeSelf || boardPanel.activeSelf) continue;   // spinning, zooming or scrolling: not climbing
             if (bookPanel.activeSelf)
             {
                 DragBookPage(touch);   // the open stamp book takes the touch: swipe between pages
@@ -914,6 +917,12 @@ public partial class ScrollyGame : MonoBehaviour
                     break;
                 case "-scrollyCatalog":
                     new GameObject("Catalog").AddComponent<CoroutineHost>().StartCoroutine(RenderCatalog(next));
+                    break;
+                case "-scrollyBoard": ShowBoard(true); break;
+                case "-scrollyBoardDemo":
+                    // The leaderboard with made-up players, to check it without the online service.
+                    boardDemo = DemoRows();
+                    ShowBoard(true);
                     break;
                 case "-scrollyWearTag": Progress.Tag = next; break;
                 case "-scrollyInspectFull":

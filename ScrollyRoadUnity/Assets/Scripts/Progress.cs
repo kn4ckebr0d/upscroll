@@ -48,6 +48,13 @@ public static class Progress
         set => PlayerPrefs.SetString("charm", value);
     }
 
+    /// Your name on the leaderboard ("" until it's first needed; then a random cute one).
+    public static string PlayerName
+    {
+        get => PlayerPrefs.GetString("playerName", "");
+        set => PlayerPrefs.SetString("playerName", value);
+    }
+
     public static string Tag
     {
         get => PlayerPrefs.GetString("tag", "sky");
