@@ -678,7 +678,7 @@ public partial class ScrollyGame : MonoBehaviour
     void StartRun()
     {
         phase = Phase.Playing;
-        Online.StartRun();   // the server notes the time, to check the height at the end
+        _ = Online.StartRun();   // the server notes the time, to check the height at the end
         ShowTitle(false);
         ShowZoneStamp(ZoneIndex(anchorY + 0.01f), collect: false);
     }
@@ -1014,6 +1014,7 @@ public partial class ScrollyGame : MonoBehaviour
                     // The results screen for a made-up run, to check its layout.
                     new GameObject("ResultsTest").AddComponent<CoroutineHost>().StartCoroutine(ResultsForTest());
                     break;
+                case "-scrollyServerTest": ServerTest(); break;
                 case "-scrollyBoard": ShowBoard(true); break;
                 case "-scrollyBoardDemo":
                     // The leaderboard with made-up players, to check it without the online service.
@@ -1048,6 +1049,16 @@ public partial class ScrollyGame : MonoBehaviour
         // Runs on its own object so world resets (which stop the game's coroutines) don't interrupt it.
         if (shotDir != null)
             new GameObject("TestHarness").AddComponent<CoroutineHost>().StartCoroutine(TakeScreenshots(shotDir, shots, interval, delay));
+    }
+
+    /// Asks the server to accept an impossible height (5000 m right after starting): it must refuse,
+    /// and nothing reaches the boards.
+    async void ServerTest()
+    {
+        if (!await Online.Connect()) { Debug.Log("[server test] not connected"); return; }
+        await Online.StartRun();
+        var result = await Online.Submit(5000, allowDirect: false);
+        Debug.Log(result == null ? "[server test] refused, as it should be" : "[server test] ACCEPTED (wrong!)");
     }
 
     IEnumerator ResultsForTest()

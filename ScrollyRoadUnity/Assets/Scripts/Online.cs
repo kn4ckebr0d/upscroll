@@ -147,17 +147,17 @@ public static class Online
     public static bool HasBoard(string board) => !missing.Contains(board);
 
     /// Tells the server a run starts now, so it can tell later whether a height was possible in the time.
-    public static async void StartRun()
+    public static async Task StartRun()
     {
         if (Status != State.Ready) return;
         try { await CloudCodeService.Instance.CallEndpointAsync("StartRun", new Dictionary<string, object>()); }
-        catch (Exception e) { Debug.LogWarning($"Online: start run: {e.Message}"); }
+        catch (Exception e) { Debug.LogWarning($"Online: start run: {e}"); }
     }
 
     /// Posts a run's height. The server (Cloud Code, "SubmitScore") checks it's possible in the time since
     /// StartRun and posts it to every board, each keeping your best. Until that script is deployed, the
     /// game posts directly.
-    public static async Task<RunResult> Submit(int meters)
+    public static async Task<RunResult> Submit(int meters, bool allowDirect = true)
     {
         if (meters <= 0 || !await Connect()) return null;
         var look = new Dictionary<string, string>
@@ -172,13 +172,14 @@ public static class Online
                 if (!ranks.ContainsKey(board)) missing.Add(board);
             return new RunResult { WeeklyRank = ranks.GetValueOrDefault(Weekly), LeagueRank = ranks.GetValueOrDefault(League) };
         }
-        catch (CloudCodeException e) when (e.Reason == CloudCodeExceptionReason.NotFound)
+        catch (CloudCodeException e) when (e.Reason == CloudCodeExceptionReason.NotFound || NotPublished(e))
         {
-            return await SubmitDirectly(meters, look);   // the check isn't deployed yet
+            if (!allowDirect) return null;
+            return await SubmitDirectly(meters, look);   // the check isn't deployed (or published) yet
         }
         catch (CloudCodeException e) when (e.Reason == CloudCodeExceptionReason.ScriptError)
         {
-            Debug.LogWarning($"Online: height refused: {e.Message}");
+            Debug.LogWarning($"Online: height refused: {e}");
             return null;
         }
         catch (Exception e)
@@ -187,6 +188,9 @@ public static class Online
             return null;
         }
     }
+
+    /// A script that's uploaded but still a draft answers "Script not published" (not a refusal).
+    static bool NotPublished(CloudCodeException e) => e.ToString().IndexOf("not published", StringComparison.OrdinalIgnoreCase) >= 0;
 
     static async Task<RunResult> SubmitDirectly(int meters, Dictionary<string, string> look)
     {

@@ -13,7 +13,7 @@ const LOOK_KEYS = ["c", "h", "b", "ch", "t"];
 
 module.exports = async ({ params, context, logger }) => {
   const meters = Math.floor(Number(params.meters));
-  if (!Number.isFinite(meters) || meters <= 0 || meters > MAX_METERS) throw new Error("Not a height");
+  if (!Number.isFinite(meters) || meters <= 0 || meters > MAX_METERS) throw new Error(`Not a height: ${JSON.stringify(params.meters)}`);
 
   const cloudSave = new DataApi(context);
   const saved = await cloudSave.getProtectedItems(context.projectId, context.playerId, ["runStartedAt"]);
@@ -46,6 +46,6 @@ module.exports = async ({ params, context, logger }) => {
 };
 
 module.exports.params = {
-  meters: { type: "NUMERIC", required: true },
-  look: { type: "JSON", required: false },
+  meters: "NUMERIC",
+  look: "JSON",
 };
