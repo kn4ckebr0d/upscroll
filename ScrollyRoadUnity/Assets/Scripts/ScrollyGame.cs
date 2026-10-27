@@ -439,6 +439,9 @@ public partial class ScrollyGame : MonoBehaviour
         var theme = ThemeFor(ZoneIndex(r + 0.01f));
         int half = HalfWidth(r);
         int above = KindOfRow(r + 1) == RowKind.Wall ? HalfWidth(r + 1) : 0;
+        // Built as two meshes: blocks that can cast a visible shadow, and the inner ones that can't.
+        var casters = new VoxelBatch();
+        var plain = new VoxelBatch();
         for (int c = -half; c <= half; c++)
         {
             bool edge = Mathf.Abs(c) == half;
@@ -450,16 +453,18 @@ public partial class ScrollyGame : MonoBehaviour
             // Inner blocks are flush with it, so their shadows could never show: they don't cast any.
             float depth = edge && Voxel.Hash(r, c, 3) < 0.5f ? 1.4f : 1f;
             float z = 1f - depth / 2f;
-            Voxel.Box(row, new Vector3(1, 1, depth), hex, new Vector3(c, r + 0.5f, z), castShadows: edge);
+            (edge ? casters : plain).Add(new Vector3(1, 1, depth), hex, new Vector3(c, r + 0.5f, z));
             // Where the wall steps in above, the exposed top gets grass or snow.
             if (Mathf.Abs(c) > above)
-                Voxel.Box(row, new Vector3(1.02f, 0.18f, depth + 0.02f), theme.Cap, new Vector3(c, r + 1.09f, z));
+                casters.Add(new Vector3(1.02f, 0.18f, depth + 0.02f), theme.Cap, new Vector3(c, r + 1.09f, z));
         }
         if (Voxel.Hash(r, 99) < 0.16f)
         {
             float side = Voxel.Hash(r, 98) < 0.5f ? -1 : 1;
-            Voxel.Box(row, new Vector3(0.5f, 0.45f, 0.5f), theme.Accents[0], new Vector3(side * (half + 0.65f), r + 0.4f, 0.3f));
+            casters.Add(new Vector3(0.5f, 0.45f, 0.5f), theme.Accents[0], new Vector3(side * (half + 0.65f), r + 0.4f, 0.3f));
         }
+        if (!casters.IsEmpty) casters.Build(row, "edges", castShadows: true);
+        if (!plain.IsEmpty) plain.Build(row, "blocks", castShadows: false);
     }
 
     /// Open space between planets: a few stars.

@@ -53,6 +53,8 @@ public static class Voxel
         }
     }
 
+    public static Mesh CubeMesh => cubeMesh;
+
     public static Color Hex(uint hex) =>
         new Color(((hex >> 16) & 0xFF) / 255f, ((hex >> 8) & 0xFF) / 255f, (hex & 0xFF) / 255f);
 
@@ -109,5 +111,80 @@ public static class Voxel
     {
         double v = System.Math.Sin(a * 12.9898 + b * 78.233 + salt * 37.719) * 43758.5453;
         return (float)(v - System.Math.Floor(v));
+    }
+}
+
+/// Many boxes built as one mesh, one object per row of the wall instead of one per block: far fewer objects
+/// to create and destroy as you climb, and fewer draw calls. One sub-mesh per color, so the per-color
+/// materials stay the same. For things that never move on their own.
+public class VoxelBatch
+{
+    static Vector3[] cubeVertices, cubeNormals;
+    static Vector2[] cubeUVs;
+    static int[] cubeTriangles;
+
+    readonly List<Vector3> vertices = new();
+    readonly List<Vector3> normals = new();
+    readonly List<Vector2> uvs = new();
+    readonly Dictionary<uint, List<int>> trianglesByColor = new();
+
+    public bool IsEmpty => vertices.Count == 0;
+
+    public void Add(Vector3 size, uint hex, Vector3 position)
+    {
+        if (cubeVertices == null)
+        {
+            var cube = Voxel.CubeMesh;
+            cubeVertices = cube.vertices;
+            cubeNormals = cube.normals;
+            cubeUVs = cube.uv;
+            cubeTriangles = cube.triangles;
+        }
+        int start = vertices.Count;
+        for (int i = 0; i < cubeVertices.Length; i++)
+        {
+            vertices.Add(Vector3.Scale(cubeVertices[i], size) + position);
+            normals.Add(cubeNormals[i]);
+            uvs.Add(cubeUVs[i]);
+        }
+        if (!trianglesByColor.TryGetValue(hex, out var triangles)) trianglesByColor[hex] = triangles = new List<int>();
+        foreach (int index in cubeTriangles) triangles.Add(start + index);
+    }
+
+    /// Makes the object (under `parent`) and returns it. Its mesh goes away with it.
+    public GameObject Build(Transform parent, string name, bool castShadows)
+    {
+        var mesh = new Mesh { name = name };
+        mesh.SetVertices(vertices);
+        mesh.SetNormals(normals);
+        mesh.SetUVs(0, uvs);
+        mesh.subMeshCount = trianglesByColor.Count;
+        var materials = new Material[trianglesByColor.Count];
+        int sub = 0;
+        foreach (var pair in trianglesByColor)
+        {
+            mesh.SetTriangles(pair.Value, sub, calculateBounds: false);
+            materials[sub++] = Voxel.Material(pair.Key);
+        }
+        mesh.RecalculateBounds();
+        var holder = new GameObject(name);
+        holder.transform.SetParent(parent, false);
+        holder.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var renderer = holder.AddComponent<MeshRenderer>();
+        renderer.sharedMaterials = materials;
+        renderer.shadowCastingMode = castShadows ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+        holder.AddComponent<OwnedMesh>().Mesh = mesh;
+        return holder;
+    }
+}
+
+/// Destroys a mesh made in code together with its object (meshes aren't freed on their own).
+public class OwnedMesh : MonoBehaviour
+{
+    public Mesh Mesh;
+
+    void OnDestroy()
+    {
+        if (Mesh != null) Destroy(Mesh);
     }
 }
