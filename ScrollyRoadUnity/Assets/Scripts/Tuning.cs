@@ -37,6 +37,8 @@ public static class Tuning
     // Mobs
     public const float SafeStartMeters = 8f;             // no mobs below this
     public const float ZoneSafeMeters = 5f;              // no mobs this close above a checkpoint
+    public const int TowerDepth = 4;                     // the wall is a tower this many blocks deep
+    public const float TowerSecretChance = 0.14f;        // per row: a little secret on the tower's side face
     public const float LaneHalfSpan = 7f;                // mobs wrap around between -7 and +7 m
     public const float HitStop = 0.12f;                  // freeze frame when a mob hits you
 

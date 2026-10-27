@@ -464,8 +464,106 @@ public partial class ScrollyGame : MonoBehaviour
             float side = Voxel.Hash(r, 98) < 0.5f ? -1 : 1;
             casters.Add(new Vector3(0.5f, 0.45f, 0.5f), theme.Accents[0], new Vector3(side * (half + 0.65f), r + 0.4f, 0.3f));
         }
+        BuildTowerSides(casters, plain, theme, r, half, above);
         if (!casters.IsEmpty) casters.Build(row, "edges", castShadows: true);
         if (!plain.IsEmpty) plain.Build(row, "blocks", castShadows: false);
+    }
+
+    // MARK: - The tower's sides
+
+    /// The wall is a tower, Tuning.TowerDepth deep: side faces behind both edges (the camera sees the right one),
+    /// grass or snow on top where it steps in, and a lid where the wall ends. The right face hides little secrets.
+    void BuildTowerSides(VoxelBatch casters, VoxelBatch plain, ZoneTheme theme, int r, int half, int above)
+    {
+        bool wallAbove = KindOfRow(r + 1) == RowKind.Wall;
+        for (int z = 1; z < Tuning.TowerDepth; z++)
+        {
+            float zc = z + 0.5f;
+            foreach (int c in new[] { -half, half })
+            {
+                uint hex = theme.Rocks[(int)(Voxel.Hash(r, c, z + 10) * theme.Rocks.Length) % theme.Rocks.Length];
+                if (Voxel.Hash(r, c, z + 20) < theme.AccentChance) hex = theme.Accents[0];
+                plain.Add(Vector3.one, hex, new Vector3(c, r + 0.5f, zc));
+                if (half > above || !wallAbove) casters.Add(new Vector3(1.02f, 0.18f, 1.02f), theme.Cap, new Vector3(c, r + 1.09f, zc));
+            }
+        }
+        // Where the tower ends, close it with a lid so you can't see inside.
+        if (!wallAbove)
+            casters.Add(new Vector3(2 * half - 1, 0.18f, Tuning.TowerDepth - 1), theme.Cap, new Vector3(0, r + 1.09f, 1 + (Tuning.TowerDepth - 1) / 2f));
+
+        if (Voxel.Hash(r, 77) < Tuning.TowerSecretChance && r > 2)
+        {
+            float x = half + 0.5f;   // the right face
+            float zc = 1.5f + Mathf.Floor(Voxel.Hash(r, 78) * (Tuning.TowerDepth - 1));
+            AddTowerSecret(casters, theme, (int)(Voxel.Hash(r, 79) * 9), x, r, zc);
+        }
+    }
+
+    /// One little thing on the tower's side face (x is the face, things stick out toward +x).
+    static void AddTowerSecret(VoxelBatch b, ZoneTheme theme, int kind, float x, int r, float z)
+    {
+        float y = r;
+        switch (kind)
+        {
+            case 0:   // a bird's nest on a twig, with eggs
+                b.Add(new Vector3(0.5f, 0.06f, 0.5f), 0x6D4C2F, new Vector3(x + 0.25f, y + 0.3f, z));
+                foreach (var (dx, dz) in new[] { (0.16f, 0f), (-0.0f, 0.18f), (0.16f, 0.18f), (0f, -0.18f), (0.16f, -0.18f), (0.32f, 0f) })
+                    b.Add(new Vector3(0.16f, 0.12f, 0.16f), 0x8D6E4F, new Vector3(x + 0.1f + dx, y + 0.39f, z + dz));
+                b.Add(new Vector3(0.1f, 0.12f, 0.1f), 0xBFE9FA, new Vector3(x + 0.22f, y + 0.42f, z - 0.05f));
+                b.Add(new Vector3(0.1f, 0.12f, 0.1f), 0xBFE9FA, new Vector3(x + 0.2f, y + 0.42f, z + 0.08f));
+                break;
+            case 1:   // a little window, sometimes with a cat looking out
+                b.Add(new Vector3(0.06f, 0.56f, 0.5f), 0x8D5A2B, new Vector3(x + 0.02f, y + 0.55f, z));
+                b.Add(new Vector3(0.07f, 0.44f, 0.38f), 0x2B2B3A, new Vector3(x + 0.03f, y + 0.55f, z));
+                if (r % 2 == 0)
+                {
+                    b.Add(new Vector3(0.08f, 0.05f, 0.05f), 0xFFD54F, new Vector3(x + 0.04f, y + 0.55f, z - 0.08f));
+                    b.Add(new Vector3(0.08f, 0.05f, 0.05f), 0xFFD54F, new Vector3(x + 0.04f, y + 0.55f, z + 0.08f));
+                }
+                b.Add(new Vector3(0.18f, 0.06f, 0.56f), 0x8D5A2B, new Vector3(x + 0.08f, y + 0.3f, z));
+                break;
+            case 2:   // a tiny door
+                b.Add(new Vector3(0.06f, 0.62f, 0.4f), 0xA0693A, new Vector3(x + 0.02f, y + 0.32f, z));
+                b.Add(new Vector3(0.07f, 0.06f, 0.06f), 0xFFC83D, new Vector3(x + 0.05f, y + 0.32f, z - 0.12f));
+                b.Add(new Vector3(0.2f, 0.06f, 0.5f), 0x9E9E9E, new Vector3(x + 0.1f, y + 0.02f, z));
+                break;
+            case 3:   // mushrooms on a mossy ledge
+                b.Add(new Vector3(0.3f, 0.08f, 0.5f), theme.Cap, new Vector3(x + 0.15f, y + 0.2f, z));
+                foreach (float dz in new[] { -0.12f, 0.12f })
+                {
+                    b.Add(new Vector3(0.05f, 0.12f, 0.05f), 0xFFF3E0, new Vector3(x + 0.15f, y + 0.3f, z + dz));
+                    b.Add(new Vector3(0.18f, 0.08f, 0.18f), 0xE53935, new Vector3(x + 0.15f, y + 0.4f, z + dz));
+                }
+                break;
+            case 4:   // flowers
+                b.Add(new Vector3(0.3f, 0.08f, 0.6f), 0x5DAE4B, new Vector3(x + 0.15f, y + 0.2f, z));
+                foreach (var (dz, color) in new[] { (-0.2f, 0xF06292u), (0f, 0xFFD54Fu), (0.2f, 0x9575CDu) })
+                {
+                    b.Add(new Vector3(0.03f, 0.16f, 0.03f), 0x43A047, new Vector3(x + 0.15f, y + 0.32f, z + dz));
+                    b.Add(new Vector3(0.1f, 0.1f, 0.1f), color, new Vector3(x + 0.15f, y + 0.44f, z + dz));
+                }
+                break;
+            case 5:   // a carved heart
+                foreach (var (dy, dz) in new[] { (0.62f, -0.1f), (0.62f, 0.1f), (0.52f, -0.16f), (0.52f, 0f), (0.52f, 0.16f), (0.42f, -0.08f), (0.42f, 0.08f), (0.32f, 0f) })
+                    b.Add(new Vector3(0.03f, 0.1f, 0.1f), 0xF06292, new Vector3(x + 0.01f, y + dy, z + dz));
+                break;
+            case 6:   // a cluster of crystals
+                b.Add(new Vector3(0.14f, 0.36f, 0.14f), 0x80DEEA, new Vector3(x + 0.08f, y + 0.4f, z));
+                b.Add(new Vector3(0.1f, 0.24f, 0.1f), 0xB39DDB, new Vector3(x + 0.1f, y + 0.32f, z + 0.15f));
+                b.Add(new Vector3(0.1f, 0.2f, 0.1f), 0xE0F7FA, new Vector3(x + 0.1f, y + 0.3f, z - 0.14f));
+                break;
+            case 7:   // a little signpost pointing up
+                b.Add(new Vector3(0.24f, 0.05f, 0.05f), 0x8D5A2B, new Vector3(x + 0.12f, y + 0.45f, z));
+                b.Add(new Vector3(0.04f, 0.36f, 0.32f), 0xD7A86E, new Vector3(x + 0.25f, y + 0.5f, z));
+                b.Add(new Vector3(0.05f, 0.2f, 0.05f), 0x5D3A1A, new Vector3(x + 0.28f, y + 0.5f, z));
+                b.Add(new Vector3(0.05f, 0.05f, 0.14f), 0x5D3A1A, new Vector3(x + 0.28f, y + 0.6f, z));
+                break;
+            default:   // a snail out for a walk
+                b.Add(new Vector3(0.12f, 0.06f, 0.26f), 0xD7C9A8, new Vector3(x + 0.06f, y + 0.3f, z));
+                b.Add(new Vector3(0.16f, 0.16f, 0.16f), 0xD99A5B, new Vector3(x + 0.08f, y + 0.4f, z + 0.03f));
+                b.Add(new Vector3(0.03f, 0.08f, 0.03f), 0xD7C9A8, new Vector3(x + 0.06f, y + 0.37f, z - 0.13f));
+                break;
+        }
     }
 
     /// Open space between planets: a few stars.

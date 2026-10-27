@@ -48,7 +48,7 @@ public static class ProjectSetup
     static void SetupPlayer()
     {
         PlayerSettings.companyName = "Knackebrod";
-        PlayerSettings.productName = "ScrollyRoad 3D";
+        PlayerSettings.productName = "UPSCROLL";
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, IOSTestBundleId);
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, BundleId);
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, BundleId);

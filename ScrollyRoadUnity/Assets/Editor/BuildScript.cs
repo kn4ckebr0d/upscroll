@@ -36,8 +36,17 @@ public static class BuildScript
         Build("Builds/Android/ScrollyRoad.apk", BuildTarget.Android, BuildOptions.None);
     }
 
+    /// The game's name and icon on the phone, set on every build so they can't drift.
+    static void ApplyBranding()
+    {
+        PlayerSettings.productName = "UPSCROLL";
+        var icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/AppIcon/AppIcon.png");
+        if (icon != null) PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
+    }
+
     static void Build(string path, BuildTarget target, BuildOptions options)
     {
+        ApplyBranding();
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path)) ?? ".");
         var report = BuildPipeline.BuildPlayer(Scenes, path, target, options);
         Debug.Log($"[ScrollyRoad] Build {target}: {report.summary.result}, {report.summary.totalErrors} errors → {path}");

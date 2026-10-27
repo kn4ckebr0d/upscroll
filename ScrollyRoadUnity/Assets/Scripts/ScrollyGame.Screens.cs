@@ -60,10 +60,14 @@ public partial class ScrollyGame
         var t = (RectTransform)titleGroup.transform;
         Ui.Stretch(t);
 
-        var card = Ui.Box(t, Center, new Vector2(0, 150), new Vector2(320, 116), Ui.Cream, Ui.CreamShade, 30, 6);
-        var title = Ui.Label(card.transform, "Scrolly Road", 48, Ui.Brown);
-        title.rectTransform.anchoredPosition = new Vector2(0, 4);
-        var ribbon = Ui.Pill(t, Center, new Vector2(118, 208), new Vector2(76, 28), Ui.Blue, Ui.BlueShade, 3);
+        // The logo, with the tagline on a cream pill under it.
+        var logoTexture = Resources.Load<Texture2D>("Logo");
+        var logo = Ui.Rect(t, "Logo", Center, new Vector2(0, 176), new Vector2(340, 340f * logoTexture.height / logoTexture.width)).gameObject.AddComponent<RawImage>();
+        logo.texture = logoTexture;
+        logo.raycastTarget = false;
+        var tagline = Ui.Pill(t, Center, new Vector2(0, 124), new Vector2(230, 34), Ui.Cream, Ui.CreamShade, 3);
+        Ui.Label(tagline.transform, "The only way is UP!", 17, Ui.Brown);
+        var ribbon = Ui.Pill(t, Center, new Vector2(132, 146), new Vector2(76, 28), Ui.Blue, Ui.BlueShade, 3);
         Ui.Label(ribbon.transform, "alpha", 15, Color.white);
         ribbon.transform.parent.localRotation = Quaternion.Euler(0, 0, -8);
         var best = Ui.Pill(t, Center, new Vector2(0, 84), new Vector2(170, 34), Ui.Blue, Ui.BlueShade, 3);
@@ -96,6 +100,11 @@ public partial class ScrollyGame
         // Extra lives: their own round button under the coins, with the price under it.
         lifeButton = MakeRoundButton(t, TopRight, new Vector2(-34, -78), 50, Ui.Cream, Ui.CreamShade, Ui.Icon("heart"), Color.white, BuyExtraLife);
         lifeButton.Label.fontSize = 13;
+        // White with a shadow: it sits on the tower, not on a pill.
+        lifeButton.Label.color = Color.white;
+        var lifeShadow = lifeButton.Label.gameObject.AddComponent<Outline>();
+        lifeShadow.effectColor = new Color(0.25f, 0.17f, 0.1f, 0.6f);
+        lifeShadow.effectDistance = new Vector2(1.5f, -1.5f);
         lifeButton.Label.rectTransform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -60);
         var tag = Ui.Pill(lifeButton.Rect, Center, new Vector2(0, -30), new Vector2(48, 20), Ui.Gold, Ui.GoldShade, 2);
         lifePriceTag = (RectTransform)tag.transform.parent;
