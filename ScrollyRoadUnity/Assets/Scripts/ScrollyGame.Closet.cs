@@ -270,7 +270,9 @@ public partial class ScrollyGame
         closetHeader.gameObject.AddComponent<CanvasGroup>();
         closetClose = MakeRoundButton(closetHeader, TopLeft, new Vector2(34, -32), 46, Ui.Cream, Ui.CreamShade, Ui.Icon("close"), Ui.Brown, () => ShowCloset(false));
         closetClose.Label.gameObject.SetActive(false);
-        Ui.Label(Ui.Rect(closetHeader, "Title", Top, new Vector2(0, -32), new Vector2(200, 40)), "Closet", 30, Ui.Brown);
+        // The title on a cream pill, readable on any tag behind it.
+        var titlePill = Ui.Pill(closetHeader, Top, new Vector2(0, -32), new Vector2(150, 46), Ui.Cream, Ui.CreamShade, 4);
+        Ui.Label(titlePill.transform, "Closet", 28, Ui.Brown);
         var coins = Ui.Pill(closetHeader, TopRight, new Vector2(-54, -32), new Vector2(92, 36), Ui.Blue, Ui.BlueShade, 3);
         closetCoinText = Ui.Label(coins.transform, "0", 18, Color.white, TextAnchor.MiddleRight, shadow: true);
         closetCoinText.rectTransform.offsetMax = new Vector2(-12, 0);
@@ -296,7 +298,7 @@ public partial class ScrollyGame
         closetContent = Ui.Rect(closetViewport, "Items", Top, Vector2.zero, new Vector2(GridWidth, 0));
         closetContent.pivot = new Vector2(0.5f, 1);
         closetScroll = new ScrollArea(closetViewport, closetContent);
-        closetHint = Ui.Label(Ui.Rect(t, "Hint", Bottom, new Vector2(0, 112), new Vector2(340, 22)), "", 14, Ui.BrownSoft);
+        closetHint = Ui.Label(Ui.Rect(t, "Hint", Bottom, new Vector2(0, 124), new Vector2(340, 22)), "", 14, Ui.Brown);
         closetAction = MakeButton(safe, Bottom, new Vector2(0, 50), new Vector2(300, 60), Ui.Blue, Ui.BlueShade, Color.white, ClosetAction, withPrice: true);
         closetAction.Label.fontSize = 22;
 
@@ -327,7 +329,7 @@ public partial class ScrollyGame
         closetInspectT = Mathf.MoveTowards(closetInspectT, closetInspecting ? 1 : 0, Time.unscaledDeltaTime / 0.35f);
         float k = Mathf.SmoothStep(0, 1, closetInspectT);
         float width = closetCard.rect.width, height = closetCard.rect.height;
-        const float header = 64, bottomRoom = 130, tabsRoom = 70;
+        const float header = 64, bottomRoom = 142, tabsRoom = 70;
         float sheet = Mathf.Clamp(height * 0.5f, 340, 440);
         float slide = k * (sheet + 90);
         closetSheet.sizeDelta = new Vector2(-16, sheet + 30);
@@ -364,12 +366,12 @@ public partial class ScrollyGame
         closetNamePill.anchoredPosition = new Vector2(0, -(top + square + 38));
         closetInspectButton.Rect.anchoredPosition = new Vector2(width / 2 - Mathf.Lerp(42, 40, k), -Mathf.Lerp(header + 30, 36, k));
 
-        // The tag: a framed card from the header down under the sheet; inspecting, past every edge of the screen.
         var full = ((RectTransform)closetPanel.transform).rect.size;
         var below = Vector2.Scale(closetCard.anchorMin, full) + new Vector2(40, 40);
         var above = Vector2.Scale(Vector2.one - closetCard.anchorMax, full) + new Vector2(40, 40);
-        var offsetMin = Vector2.Lerp(new Vector2(12, sheet - 40), -below, k);
-        var offsetMax = Vector2.Lerp(new Vector2(-12, -(header - 4)), above, k);
+        // The tag fills the whole screen (past the safe area), behind the header and the sheet.
+        var offsetMin = -below;
+        var offsetMax = above;
         closetTag.offsetMin = offsetMin;
         closetTag.offsetMax = offsetMax;
         closetTagFrame.offsetMin = offsetMin - new Vector2(6, 6);

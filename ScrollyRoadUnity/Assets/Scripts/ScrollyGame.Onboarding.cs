@@ -65,8 +65,6 @@ public partial class ScrollyGame
     {
         bool titleShowing = phase == Phase.Title && OpenModal == null;
         if (activeHint != Hint.None && phase != Phase.Playing) StopHint();   // the run ended
-        if (dragPrompt != null && titleShowing)
-            dragPrompt.localScale = Vector3.one * (1 + 0.03f * Mathf.Sin(Time.unscaledTime * 4f));
 
         // The swipe, a few meters into a first run, before the first mobs.
         if (activeHint == Hint.None && phase == Phase.Playing && !isSnapping && !TutorialActive && ClimberY - anchorY > 3f

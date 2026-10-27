@@ -962,6 +962,10 @@ public partial class ScrollyGame : MonoBehaviour
     void ParseTestArguments()
     {
         var args = System.Environment.GetCommandLineArgs();
+        // The iOS Simulator doesn't pass launch arguments to the game; it can pass SCROLLY_ARGS instead.
+        string fromEnvironment = System.Environment.GetEnvironmentVariable("SCROLLY_ARGS");
+        if (!string.IsNullOrEmpty(fromEnvironment))
+            args = fromEnvironment.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
         string shotDir = null;
         int shots = 1;
         float interval = 2f, delay = 2f;
@@ -1001,6 +1005,9 @@ public partial class ScrollyGame : MonoBehaviour
                     previewSpunAt = Time.unscaledTime + 30;
                     inspectZoom = 2.2f;
                     inspectYawVelocity = 160;
+                    break;
+                case "-scrollyIcons":
+                    new GameObject("Icons").AddComponent<CoroutineHost>().StartCoroutine(RenderIcons(next));
                     break;
                 case "-scrollyCatalog":
                     new GameObject("Catalog").AddComponent<CoroutineHost>().StartCoroutine(RenderCatalog(next));

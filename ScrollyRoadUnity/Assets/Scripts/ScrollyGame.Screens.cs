@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,9 +9,9 @@ using UnityEngine.UI;
 public partial class ScrollyGame
 {
     GameObject titleGroup, settingsPanel, continuePanel, gameOverPanel;
-    RectTransform continueCard, resultsCard, settingsCard;
+    RectTransform continueCard, resultsCard, settingsCard, titleBest;
     HudButton titleBoardButton, runRankButton;
-    Text continueHeight, gameOverScore, gameOverDelta, gameOverCoins;
+    Text titleBestText, continueHeight, gameOverScore, gameOverDelta, gameOverCoins;
     RectTransform gameOverBest, stampRow, stampBadge, lifePriceTag;
     Text stampBadgeText, lifePriceText;
     GameObject stampsLabel, noStampsLabel;
@@ -65,47 +66,64 @@ public partial class ScrollyGame
         var ribbon = Ui.Pill(t, Center, new Vector2(118, 208), new Vector2(76, 28), Ui.Blue, Ui.BlueShade, 3);
         Ui.Label(ribbon.transform, "alpha", 15, Color.white);
         ribbon.transform.parent.localRotation = Quaternion.Euler(0, 0, -8);
-        // Your best, which is also the way into the leaderboard.
-        titleBoardButton = MakeButton(t, Center, new Vector2(0, 84), new Vector2(210, 44), Ui.Blue, Ui.BlueShade, Color.white,
-            () => ShowBoard(true), icon: Ui.Icon("trophy"));
-        titleBoardButton.Label.fontSize = 17;
-        titleBoardButton.Label.gameObject.AddComponent<Shadow>().effectColor = new Color(0, 0, 0, 0.25f);
+        var best = Ui.Pill(t, Center, new Vector2(0, 84), new Vector2(170, 34), Ui.Blue, Ui.BlueShade, 3);
+        titleBest = (RectTransform)best.transform.parent;
+        titleBestText = Ui.Label(best.transform, "", 16, Color.white, TextAnchor.MiddleCenter, shadow: true);
 
         // Settings live behind a gear, top left: secondary, out of the way.
-        settingsButton = MakeRoundButton(t, TopLeft, new Vector2(34, -34), 48, Ui.Cream, Ui.CreamShade, Ui.Icon("gear"), Ui.BrownSoft,
+        settingsButton = MakeRoundButton(t, TopLeft, new Vector2(30, -24), 44, Ui.Cream, Ui.CreamShade, Ui.Icon("gear"), Ui.BrownSoft,
             () => ShowSettings(true));
         settingsButton.Label.gameObject.SetActive(false);
 
-        // Stamps and extra lives as round buttons on the sides, clear of the climber in the middle.
-        stampsButton = MakeRoundButton(t, BottomLeft, new Vector2(66, 196), 72, Ui.Cream, Ui.CreamShade, Ui.Icon("stamp"), Ui.Brown,
-            () => ShowStampBook(true));
-        var badge = Ui.Circle(stampsButton.Rect, Center, new Vector2(26, 26), 28, Ui.Gold);
+        // Everything else in a dock along the bottom: a row of app tiles, like Animal Crossing's NookPhone.
+        var dock = Ui.Box(t, Bottom, Vector2.zero, new Vector2(0, 100), Ui.Cream, Ui.CreamShade, 30, 5);
+        var dockRect = (RectTransform)dock.transform.parent;
+        dockRect.anchorMin = new Vector2(0, 0);
+        dockRect.anchorMax = new Vector2(1, 0);
+        dockRect.sizeDelta = new Vector2(-24, 100);
+        dockRect.anchoredPosition = new Vector2(0, 62);
+        closetButton = DockTile(dock, 0, "Closet", Ui.Icon("shirt"), Ui.Blue, Ui.BlueShade, Color.white, () => ShowCloset(true));
+        stampsButton = DockTile(dock, 1, "Stamps", Ui.Icon("stamp"), Voxel.Hex(0x5FAE4E), Voxel.Hex(0x45893A), Color.white, () => ShowStampBook(true));
+        titleBoardButton = DockTile(dock, 2, "Ranks", Ui.Icon("trophy"), Ui.Gold, Ui.GoldShade, Ui.OnGold, () => ShowBoard(true));
+        giftButton = DockTile(dock, 3, "Gift", Ui.Icon("gift"), Voxel.Hex(0xE85A4F), Voxel.Hex(0xB8433A), Color.white, () => ShowGift(true));
+
+        var badge = Ui.Circle(stampsButton.Face.transform, new Vector2(1, 1), new Vector2(-4, -4), 24, Ui.Gold);
         stampBadge = badge.rectTransform;
-        stampBadgeText = Ui.Label(stampBadge, "", 15, Ui.OnGold, TextAnchor.MiddleCenter);
-
-        lifeButton = MakeRoundButton(t, BottomRight, new Vector2(-66, 196), 72, Ui.Cream, Ui.CreamShade, Ui.Icon("heart"), Color.white, BuyExtraLife);
-        var tag = Ui.Pill(lifeButton.Rect, Center, new Vector2(0, -34), new Vector2(70, 26), Ui.Gold, Ui.GoldShade, 2);
-        lifePriceTag = (RectTransform)tag.transform.parent;
-        lifePriceText = Ui.Label(tag.transform, "", 15, Ui.OnGold, TextAnchor.MiddleRight);
-        lifePriceText.rectTransform.offsetMax = new Vector2(-10, 0);
-        Ui.Coin(lifePriceTag, new Vector2(0, 0.5f), new Vector2(12, 0), 22);
-        lifeButton.Label.rectTransform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -36 - 30);
-
-        // The closet and the daily gift, a row above.
-        closetButton = MakeRoundButton(t, BottomLeft, new Vector2(66, 318), 64, Ui.Cream, Ui.CreamShade, Ui.Icon("shirt"), Ui.Brown,
-            () => ShowCloset(true));
-        closetButton.Label.text = "Closet";
-        giftButton = MakeRoundButton(t, BottomRight, new Vector2(-66, 318), 64, Ui.Cream, Ui.CreamShade, Ui.Icon("gift"), Voxel.Hex(0xE85A4F),
-            () => ShowGift(true));
-        giftButton.Label.text = "Gift";
-        var giftDot = Ui.Circle(giftButton.Rect, Center, new Vector2(23, 23), 26, Ui.Gold);
+        stampBadgeText = Ui.Label(stampBadge, "", 13, Ui.OnGold, TextAnchor.MiddleCenter);
+        var giftDot = Ui.Circle(giftButton.Face.transform, new Vector2(1, 1), new Vector2(-4, -4), 24, Ui.Gold);
         giftBadge = giftDot.rectTransform;
-        Ui.Label(giftBadge, "!", 17, Ui.OnGold, TextAnchor.MiddleCenter);
+        Ui.Label(giftBadge, "!", 15, Ui.OnGold, TextAnchor.MiddleCenter);
+        // Extra lives: their own round button under the coins, with the price under it.
+        lifeButton = MakeRoundButton(t, TopRight, new Vector2(-34, -78), 50, Ui.Cream, Ui.CreamShade, Ui.Icon("heart"), Color.white, BuyExtraLife);
+        lifeButton.Label.fontSize = 13;
+        lifeButton.Label.rectTransform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -60);
+        var tag = Ui.Pill(lifeButton.Rect, Center, new Vector2(0, -30), new Vector2(48, 20), Ui.Gold, Ui.GoldShade, 2);
+        lifePriceTag = (RectTransform)tag.transform.parent;
+        lifePriceText = Ui.Label(tag.transform, "", 13, Ui.OnGold, TextAnchor.MiddleRight);
+        lifePriceText.rectTransform.offsetMax = new Vector2(-7, 0);
+        Ui.Coin(lifePriceTag, new Vector2(0, 0.5f), new Vector2(9, 0), 16);
 
-        // The one main action, in the thumb zone.
-        var prompt = Ui.Pill(t, Bottom, new Vector2(0, 62), new Vector2(250, 52), Ui.Gold, Ui.GoldShade, 4);
-        dragPrompt = (RectTransform)prompt.transform.parent;
-        Ui.Label(prompt.transform, "Drag down to climb", 20, Ui.OnGold, TextAnchor.MiddleCenter);
+        // The one main action is a gesture, not a button: a hint with arrows bobbing down, above the dock.
+        dragPrompt = Ui.Rect(t, "Drag hint", Bottom, new Vector2(0, 142), new Vector2(300, 40));
+        Ui.Label(dragPrompt, "Drag down to climb", 21, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        foreach (float side in new[] { -1f, 1f })
+            dragArrows.Add(Ui.Picture(dragPrompt, Center, new Vector2(side * 128, 0), new Vector2(24, 24), Ui.Icon("down"), Color.white).rectTransform);
+    }
+
+    readonly List<RectTransform> dragArrows = new();
+
+    /// One app tile in the title's dock: a colored rounded square with an icon and a caption under it.
+    /// The whole column is tappable, caption included.
+    HudButton DockTile(Image dock, int index, string caption, Sprite icon, Color face, Color shade, Color iconColor, System.Action action)
+    {
+        var column = Ui.Rect(dock.transform, caption, new Vector2(0.125f + index * 0.25f, 0.5f), Vector2.zero, new Vector2(76, 92));
+        var tile = Ui.Box(column, Center, new Vector2(0, 10), new Vector2(56, 56), face, shade, 18, 4);
+        var tileRect = (RectTransform)tile.transform.parent;
+        var iconImage = Ui.Picture(tile.transform, Center, Vector2.zero, new Vector2(30, 30), icon, iconColor);
+        var label = Ui.Label(Ui.Rect(column, "Caption", Center, new Vector2(0, -34), new Vector2(80, 18)), caption, 13, Ui.Brown);
+        var button = new HudButton { Rect = column, Face = tile, Lip = tileRect.GetChild(0).GetComponent<Image>(), Icon = iconImage, Label = label, Action = action };
+        buttons.Add(button);
+        return button;
     }
 
     void ShowTitle(bool visible) => titleGroup.SetActive(visible);
@@ -113,6 +131,9 @@ public partial class ScrollyGame
     void UpdateScreens()
     {
         titleGroup.SetActive(phase == Phase.Title && OpenModal == null);
+        if (titleGroup.activeSelf)
+            for (int i = 0; i < dragArrows.Count; i++)
+                dragArrows[i].anchoredPosition = new Vector2(dragArrows[i].anchoredPosition.x, -Mathf.Abs(Mathf.Sin(Time.unscaledTime * 3.2f)) * 7);
         // Full-screen menus cover the world, so don't draw it (and its shadows) behind them.
         bool covered = closetPanel.activeSelf || giftPanel.activeSelf || boardPanel.activeSelf || bookPanel.activeSelf || settingsPanel.activeSelf;
         int mask = covered ? 0 : worldCullingMask;
@@ -127,13 +148,14 @@ public partial class ScrollyGame
         int lives = Progress.ExtraLives;
         bool full = lives >= Tuning.MaxExtraLives;
         lifeButton.Label.text = $"Lives {lives}/{Tuning.MaxExtraLives}";
-        lifePriceText.text = full ? "FULL" : Tuning.ExtraLifePrice.ToString();
-        stampsButton.Label.text = $"Stamps {StampsCollected}/{StampTotal}";
+        lifePriceTag.gameObject.SetActive(!full);
+        lifePriceText.text = Tuning.ExtraLifePrice.ToString();
         int unseen = UnseenStamps;
         stampBadge.gameObject.SetActive(unseen > 0);
         stampBadgeText.text = unseen.ToString();
         giftBadge.gameObject.SetActive(GiftReady);
-        titleBoardButton.Label.text = Progress.Best > 0 ? $"BEST {Progress.Best} m" : "Leaderboard";
+        titleBest.gameObject.SetActive(Progress.Best > 0);
+        titleBestText.text = $"BEST {Progress.Best} m";
         SetToggle(soundToggle, Synth.Instance.Enabled);
         SetToggle(hapticsToggle, Haptics.Enabled);
         SetToggle(shakeToggle, Progress.ShakeOn);

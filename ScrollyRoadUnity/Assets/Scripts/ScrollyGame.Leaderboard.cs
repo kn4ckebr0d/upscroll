@@ -50,17 +50,17 @@ public partial class ScrollyGame
         LayoutBoardTabs();
 
         // Your banner, and changing your name.
-        boardMine = Ui.Rect(safe, "Mine", Top, new Vector2(0, -152), Vector2.zero);
+        boardMine = Ui.Rect(safe, "Mine", Top, new Vector2(0, -182), Vector2.zero);
         boardMine.anchorMin = new Vector2(0, 1);
         boardMine.anchorMax = new Vector2(1, 1);
         boardMine.sizeDelta = new Vector2(-28, RowHeight + 8);
-        var rename = MakeButton(safe, Top, new Vector2(-82, -222), new Vector2(156, 40), Ui.Cream, Ui.CreamShade, Ui.Brown, StartRename, icon: Ui.Icon("pencil"));
+        var rename = MakeButton(safe, Top, new Vector2(-82, -258), new Vector2(156, 40), Ui.Cream, Ui.CreamShade, Ui.Brown, StartRename, icon: Ui.Icon("pencil"));
         rename.Label.text = "Change name";
         rename.Label.fontSize = 16;
-        var dice = MakeButton(safe, Top, new Vector2(82, -222), new Vector2(156, 40), Ui.Cream, Ui.CreamShade, Ui.Brown, RandomName, icon: Ui.Icon("dice"));
+        var dice = MakeButton(safe, Top, new Vector2(82, -258), new Vector2(156, 40), Ui.Cream, Ui.CreamShade, Ui.Brown, RandomName, icon: Ui.Icon("dice"));
         dice.Label.text = "Random name";
         dice.Label.fontSize = 16;
-        boardNameHint = Ui.Label(Ui.Rect(safe, "Name hint", Top, new Vector2(0, -254), new Vector2(340, 20)), "", 14, Voxel.Hex(0xC0392B));
+        boardNameHint = Ui.Label(Ui.Rect(safe, "Name hint", Top, new Vector2(0, -290), new Vector2(340, 20)), "", 14, Voxel.Hex(0xC0392B));
 
         // The list: a cream sheet with a scrolling column of banners.
         var sheet = Ui.Box(safe, Bottom, Vector2.zero, Vector2.zero, Ui.Cream, Ui.CreamShade, 30, 0);
@@ -68,7 +68,7 @@ public partial class ScrollyGame
         sheetRect.anchorMin = Vector2.zero;
         sheetRect.anchorMax = Vector2.one;
         sheetRect.offsetMin = new Vector2(8, -30);
-        sheetRect.offsetMax = new Vector2(-8, -270);
+        sheetRect.offsetMax = new Vector2(-8, -306);
         var viewport = Ui.Rect(sheet.transform, "Rows", Center, Vector2.zero, Vector2.zero);
         viewport.anchorMin = Vector2.zero;
         viewport.anchorMax = Vector2.one;
@@ -110,7 +110,7 @@ public partial class ScrollyGame
             if (has) shown.Add(i);
         }
         for (int k = 0; k < shown.Count; k++)
-            boardTabs[shown[k]].Rect.anchoredPosition = new Vector2((k - (shown.Count - 1) / 2f) * 116, -88);
+            boardTabs[shown[k]].Rect.anchoredPosition = new Vector2((k - (shown.Count - 1) / 2f) * 116, -94);
     }
 
     void ShowBoardTab(string board)

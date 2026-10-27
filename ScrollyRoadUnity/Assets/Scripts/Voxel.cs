@@ -12,12 +12,9 @@ public static class Voxel
     public static void Init(Material material)
     {
         baseMaterial = material;
-        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cubeMesh = cube.GetComponent<MeshFilter>().sharedMesh;
-        Object.Destroy(cube);
-        var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        cylinderMesh = cylinder.GetComponent<MeshFilter>().sharedMesh;
-        Object.Destroy(cylinder);
+        // Unity's built-in meshes, without making primitives (those add physics colliders, and the build has no physics).
+        cubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+        cylinderMesh = Resources.GetBuiltinResource<Mesh>("Cylinder.fbx");
     }
 
     public static Mesh CubeMesh => cubeMesh;
