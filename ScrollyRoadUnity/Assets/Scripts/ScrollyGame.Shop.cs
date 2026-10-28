@@ -48,7 +48,7 @@ public partial class ScrollyGame
     void PlayAgain()
     {
         Synth.Instance.Click();
-        ResetWorld();
+        AfterRunAd(ResetWorld);
     }
 
     /// A mob hit you but you had an extra life: slide back to the checkpoint instead of falling.
@@ -97,6 +97,12 @@ public partial class ScrollyGame
             return;
         }
         continuesUsed++;
+        Continue();
+    }
+
+    /// Paid for (coins or a video): back up to the checkpoint.
+    void Continue()
+    {
         RefreshShop();
         ShowContinueOffer(false);
         ShowGameOver(false);

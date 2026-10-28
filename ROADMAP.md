@@ -54,10 +54,22 @@ Earth is always normal. The planets after it get a random effect (never the same
 - Progress saved in the cloud, so it carries across devices
 - Likely technology: Unity Gaming Services (Authentication, Leaderboards, Cloud Save), which fits Unity and has a free tier
 
-## Phase 5: Monetization
-- Rewarded ads only (an extra spin, a free continue). No forced ads.
-- In-app purchases: gem packs
-- Supporter pack: removes ads, plus bonus gems and an exclusive supporter hat and tag
+## Phase 5: Monetization: first version built (2026-10-28)
+- All 216 built 3D items are in the game (258 items in total).
+- Shop (tap your coins on the title screen or in the closet), on Unity IAP 5:
+  - Remove Ads, €2.99 (non-consumable). It removes the ads between runs, gives 2x coins for 15 minutes every day (starting with the first run of the day), and unlocks the Supporter tag. Optional videos stay available.
+  - Coin packs: 1,000 coins for €0.99, 3,000 for €2.49, 7,500 for €4.99.
+  - Restore Purchases.
+  - Runs on Unity's fake store while `Tuning.TestStore` is true.
+- Ads, friendly by design:
+  - Optional videos: a free continue (once per run) and double coins on the results screen.
+  - Between runs: never in the first 5 runs, at most once per 3 runs and once per 4 minutes, never for Supporters. No banners, and never for anything random.
+  - A stand-in "test ad" shows until an ad network is set up.
+- Before release:
+  - Create the products in App Store Connect and the Play Console with these ids: `upscroll.removeads`, `upscroll.coins.1000`, `upscroll.coins.3000`, `upscroll.coins.7500`. Then set `Tuning.TestStore` to false.
+  - Ad network: Unity LevelPlay (account plus app keys), with the GDPR consent prompt and iOS App Tracking Transparency.
+  - Update the website's privacy page for ads and purchases, and the store privacy forms.
+  - Remove the alpha test buttons.
 
 ## Later / open
 - Daily challenge: everyone gets the same planets that day (fair for the leaderboard)

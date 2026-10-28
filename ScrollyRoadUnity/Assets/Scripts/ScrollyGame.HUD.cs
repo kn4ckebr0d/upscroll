@@ -63,6 +63,8 @@ public partial class ScrollyGame
         BuildTitle();
         BuildInterruptCard();
         BuildModals();
+        BuildShopEntrances((RectTransform)titleGroup.transform, closetHeader);
+        BuildBoostPill();
     }
 
     /// Shown while the game is frozen after an interruption (a call, Control Center, a notification).
@@ -324,13 +326,13 @@ public partial class ScrollyGame
 
     // MARK: - Coins fly to the counter
 
-    void FlyCoin(Vector3 worldPosition)
+    void FlyCoin(Vector3 worldPosition, int value = 1)
     {
-        coinsInFlight++;
-        StartCoroutine(CoinFlight(CanvasPoint(worldPosition)));
+        coinsInFlight += value;
+        StartCoroutine(CoinFlight(CanvasPoint(worldPosition), value));
     }
 
-    IEnumerator CoinFlight(Vector2 from)
+    IEnumerator CoinFlight(Vector2 from, int value)
     {
         var coin = Ui.Coin(canvasRect, Center, from, 28).rectTransform;
         Vector2 to = CanvasPointOf(coinIcon);
@@ -346,8 +348,8 @@ public partial class ScrollyGame
             yield return null;
         }
         Destroy(coin.gameObject);
-        coinsInFlight = Mathf.Max(0, coinsInFlight - 1);
-        shownCoins++;
+        coinsInFlight = Mathf.Max(0, coinsInFlight - value);
+        shownCoins += value;
         coinText.text = shownCoins.ToString("N0");
         StartCoroutine(Bump(coinPill, 0.12f));
     }

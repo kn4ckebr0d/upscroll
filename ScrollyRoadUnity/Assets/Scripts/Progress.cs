@@ -190,6 +190,47 @@ public static class Progress
         return count == 0;
     }
 
+    // Purchases and ads.
+
+    /// Bought Remove Ads (comes with the Supporter tag).
+    public static bool RemoveAds
+    {
+        get => PlayerPrefs.GetInt("removeAds", 0) == 1;
+        set => PlayerPrefs.SetInt("removeAds", value ? 1 : 0);
+    }
+
+    /// The Supporter boost: the day it last started, and when it runs out.
+    public static string BoostDay
+    {
+        get => PlayerPrefs.GetString("boostDay", "");
+        set => PlayerPrefs.SetString("boostDay", value);
+    }
+
+    public static System.DateTime BoostUntil
+    {
+        get => long.TryParse(PlayerPrefs.GetString("boostUntil", ""), out long ticks) ? new System.DateTime(ticks, System.DateTimeKind.Utc) : System.DateTime.MinValue;
+        set => PlayerPrefs.SetString("boostUntil", value.Ticks.ToString());
+    }
+
+    /// Runs played in total (ads wait until you've had a few).
+    public static int RunsPlayed
+    {
+        get => PlayerPrefs.GetInt("runsPlayed", 0);
+        set => PlayerPrefs.SetInt("runsPlayed", value);
+    }
+
+    static HashSet<string> handledOrders;
+
+    /// Remembers a coin purchase as paid out. Returns false if it already was (the store can deliver one twice).
+    public static bool MarkOrderHandled(string transaction)
+    {
+        if (string.IsNullOrEmpty(transaction)) return true;
+        handledOrders ??= new HashSet<string>(PlayerPrefs.GetString("orders", "").Split(',').Where(s => s.Length > 0));
+        if (!handledOrders.Add(transaction)) return false;
+        PlayerPrefs.SetString("orders", string.Join(",", handledOrders));
+        return true;
+    }
+
     /// Spends coins if there are enough. Returns whether it worked.
     public static bool Spend(int amount)
     {

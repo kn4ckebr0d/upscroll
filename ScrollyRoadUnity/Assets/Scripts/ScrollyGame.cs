@@ -68,7 +68,7 @@ public partial class ScrollyGame : MonoBehaviour
     int toneStep;
     float lastBlipY;
 
-    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyPoster <dir>, -scrollyBoard, -scrollyBoardDemo, -scrollyInterruptTest, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
+    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyPoster <dir>, -scrollyShop [pack], -scrollyAd, -scrollyBoard, -scrollyBoardDemo, -scrollyInterruptTest, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
     // -scrollyShotDir <dir> -scrollyShots <n> -scrollyShotInterval <s> -scrollyShotDelay <s>
     bool autopilot;
     bool god;
@@ -262,6 +262,7 @@ public partial class ScrollyGame : MonoBehaviour
         UpdateCamera(dt);
         GenerateContent();
         UpdateHUD();
+        UpdateBoostPill();
     }
 
     /// Back to the ground for a new run.
@@ -791,6 +792,9 @@ public partial class ScrollyGame : MonoBehaviour
     void StartRun()
     {
         phase = Phase.Playing;
+        Progress.RunsPlayed++;
+        CountRunForAds();
+        StartDailyBoost();
         _ = Online.StartRun();   // the server notes the time, to check the height at the end
         ShowTitle(false);
         ShowZoneStamp(ZoneIndex(anchorY + 0.01f), collect: false);
@@ -951,12 +955,13 @@ public partial class ScrollyGame : MonoBehaviour
             if (EffectAt(checkpoint.Y - 1) == PlanetEffect.Boss)
             {
                 // Made it through the meteor storm.
-                Progress.Coins += Tuning.BossReward;
+                int reward = Tuning.BossReward * CoinValue;
+                Progress.Coins += reward;
                 Progress.BossesBeaten++;
-                runCoins += Tuning.BossReward;
+                runCoins += reward;
                 RefreshShop();
                 Debris.Burst(climber.transform.position + Vector3.up, 0xFFD54F, 24, 4f);
-                ShowBanner("BOSS BEATEN!", $"+{Tuning.BossReward} COINS");
+                ShowBanner("BOSS BEATEN!", $"+{reward} COINS");
             }
             Progress.Save();
             StartCoroutine(LaunchSequence(checkpoint));
@@ -1138,6 +1143,12 @@ public partial class ScrollyGame : MonoBehaviour
                     new GameObject("ResultsTest").AddComponent<CoroutineHost>().StartCoroutine(ResultsForTest());
                     break;
                 case "-scrollyServerTest": ServerTest(); break;
+                case "-scrollyShop":
+                    new GameObject("ShopTest").AddComponent<CoroutineHost>().StartCoroutine(ShopForTest(next));
+                    break;
+                case "-scrollyAd":
+                    new GameObject("AdTest").AddComponent<CoroutineHost>().StartCoroutine(AdForTest());
+                    break;
                 case "-scrollyBoard": ShowBoard(true); break;
                 case "-scrollyBoardDemo":
                     // The leaderboard with made-up players, to check it without the online service.
@@ -1190,6 +1201,25 @@ public partial class ScrollyGame : MonoBehaviour
         lastRunMeters = 123;
         runCoins = 14;
         ShowGameOver(true);
+    }
+
+    /// -scrollyShop [pack id]: opens the shop, and buys that pack on the test store after a moment.
+    IEnumerator ShopForTest(string packId)
+    {
+        yield return null;
+        ShowShop(true);
+        var pack = Purchases.PackOf(packId);
+        if (pack == null) yield break;
+        yield return new WaitForSecondsRealtime(2f);
+        var row = packRows.Find(r => r.Pack == pack);
+        if (row != null) BuyPack(row);
+    }
+
+    /// -scrollyAd: the continue offer's free-continue video (the test ad).
+    IEnumerator AdForTest()
+    {
+        yield return null;
+        ShowRewardedAd(watched => ShowTip(watched ? "Reward earned!" : "No reward"));
     }
 
     IEnumerator InterruptForTest()

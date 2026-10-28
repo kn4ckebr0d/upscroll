@@ -37,6 +37,15 @@ public static class Tuning
     // Mobs
     public const float SafeStartMeters = 8f;             // no mobs below this
     public const float ZoneSafeMeters = 5f;              // no mobs this close above a checkpoint
+    // Purchases and ads.
+    public const bool TestStore = true;                  // Unity's fake store until the products exist in the real stores
+    public const int AdFreeRuns = 5;                     // no ads between runs before you've played this many
+    public const int AdEveryRuns = 3;                    // at most one ad between runs every this many runs...
+    public const float AdMinSeconds = 240f;              // ...and never twice within this many seconds
+    public const int AdDoubleCoinsMin = 5;               // "watch a video for double coins" from this many coins
+    public const float TestAdSeconds = 5f;               // how long the stand-in test ad lasts
+    public const int SupporterBoostMinutes = 15;         // Remove Ads: double coins this long, every day from the first run
+
     public const float LaunchPosterSeconds = 1.8f;      // iPhone: the splash poster shows at least this long
     public const int TowerDepth = 4;                     // the wall is a tower this many blocks deep
     public const float TowerSecretChance = 0.14f;        // per row: a little secret on the tower's side face

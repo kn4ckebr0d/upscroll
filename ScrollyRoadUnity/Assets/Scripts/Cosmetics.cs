@@ -404,6 +404,7 @@ public static partial class Cosmetics
         Tag("ocean", "Ocean", new TagStyle { Colors = new uint[] { 0x2F7FE0, 0x86CCF7 }, Pattern = "waves", InkAlpha = 0.35f, Tile = 80, Drift = new Vector2(0.05f, 0) }),
         Tag("mint", "Mint zigzag", new TagStyle { Colors = new uint[] { 0x4FC4A0, 0xB0EBD6 }, Pattern = "zigzag", InkAlpha = 0.45f, Tile = 64 }),
         Tag("sakura", "Sakura", new TagStyle { Colors = new uint[] { 0xFFC2D4, 0xFFF1F5 }, Pattern = "flowers", Ink = 0xF27DA6, InkAlpha = 0.6f, Tile = 90, Drift = new Vector2(0.015f, 0.03f) }),
+        Tag("supporter", "Supporter", new TagStyle { Colors = new uint[] { 0xFFE38A, 0xF4C24A, 0xE8962E }, Pattern = "hearts", InkAlpha = 0.5f, Tile = 64, Drift = new Vector2(0, 0.03f), Rays = true }),
         Tag("sweetheart", "Sweetheart", new TagStyle { Colors = new uint[] { 0xEE5A8A, 0xF9A8C4 }, Pattern = "hearts", InkAlpha = 0.45f, Tile = 70, Drift = new Vector2(0, -0.03f) }),
         Tag("starry", "Starry night", new TagStyle { Colors = new uint[] { 0x1A1F4D, 0x4A3F95 }, Pattern = "stars", Ink = 0xFFE08A, InkAlpha = 0.85f, Tile = 96, Drift = new Vector2(0.012f, 0) }),
         Tag("sunburst", "Sunburst", new TagStyle { Colors = new uint[] { 0xFF8F3D, 0xFFD96B }, Ink = 0xFFF3C4, InkAlpha = 0.45f, Rays = true }),
@@ -420,6 +421,7 @@ public static partial class Cosmetics
         ["page"] = "Fill a stamp book page",
         ["boss"] = "Beat a boss planet",
         ["height1000"] = "Reach 1000 m",
+        ["supporter"] = "Support UPSCROLL",
     };
 
     // MARK: - The item sheet

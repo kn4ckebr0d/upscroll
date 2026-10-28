@@ -8,16 +8,48 @@ bearcub,character,Bear,common,coins,250,,yes,bearcub,,,,,,
 duck,character,Duck,common,coins,250,,yes,duck,,,,,,
 pig,character,Piggy,common,coins,250,,yes,pig,,,,,,
 penguin,character,Penguin,rare,coins,250,,yes,penguin,,,,,,
+mouse,character,Mouse,common,coins,250,,yes,mouse,,,,,,"Big round ears, whiskers and a long tail"
+chick,character,Chick,common,coins,300,,yes,chick,,,,,,A fluffy yellow chick with a little tuft
+koala,character,Koala,common,coins,300,,yes,koala,,,,,,Fluffy ears and a big dark nose
+sheep,character,Sheep,common,coins,300,,yes,sheep,,,,,,"Woolly, with a dark face"
+hamster,character,Hamster,common,coins,300,,yes,hamster,,,,,,Chubby cheeks and a white belly
 cow,character,Cow,common,coins,350,,yes,cow,,,,,,
 fox,character,Fox,common,coins,350,,yes,fox,,,,,,
+panda,character,Panda,common,coins,350,,yes,panda,,,,,,"Black and white, with eye patches"
 owl,character,Owl,common,coins,400,,yes,owl,,,,,,
 raccoon,character,Raccoon,rare,coins,500,,yes,raccoon,,,,,,
+monkey,character,Monkey,rare,coins,500,,yes,monkey,,,,,,"A peachy face, round ears and a curly tail"
+chef,character,Chef,rare,coins,500,,yes,chef,,,,,,A tall white hat and a fancy mustache
+tiger,character,Tiger,rare,coins,600,,yes,tiger,,,,,,Orange with black stripes
+shiba,character,Shiba,rare,coins,600,,yes,shiba,,,,,,A happy shiba with a curly tail
+bee,character,Bee,rare,coins,600,,yes,bee,,,,,,"Striped, with wings and antennae"
+ladybug,character,Ladybug,rare,coins,600,,yes,ladybug,,,,,,A spotted red shell on the back
+lion,character,Lion,rare,coins,700,,yes,lion,,,,,,A big fluffy mane
+polarbear,character,Polar bear,rare,coins,700,,yes,polarbear,,,,,,"Snowy white, with a blue scarf for the ice planets"
 axolotl,character,Axolotl,rare,coins,800,,yes,axolotl,,,,,,
+snowman,character,Snowman,rare,coins,800,,yes,snowman,,,,,,"Carrot nose, coal buttons and a red scarf"
+firefighter,character,Firefighter,rare,coins,900,,yes,firefighter,,,,,,A red helmet and a reflective jacket
+ghost,character,Ghost,mega,coins,1200,,yes,ghost,,,,,,A friendly little ghost
+pumpkinhead,character,Pumpkin head,mega,coins,1300,,yes,pumpkinhead,,,,,,A carved pumpkin for a head
 mummy,character,Mummy,mega,coins,1400,,yes,mummy,,,,,,
+pirate,character,Pirate,mega,coins,1500,,yes,pirate,,,,,,"An eye patch, a bandana and a striped shirt"
+alien,character,Alien,mega,coins,1500,,yes,alien,,,,,,Big black eyes and bobbly antennae
 wizard,character,Wizard,mega,coins,1600,,yes,wizard,,,,,,
+dino,character,Dino,mega,coins,1600,,yes,dino,,,,,,A little T. rex with spikes down its back
 knight,character,Knight,mega,coins,1800,,yes,knight,,,,,,
+diver,character,Deep-sea diver,mega,coins,1800,,yes,diver,,,,,,A brass helmet with a round window
+samurai,character,Samurai,mega,coins,2000,,yes,samurai,,,,,,Red lacquer armor and a golden kabuto crest
+yeti,character,Yeti,ultra,coins,2800,,yes,yeti,,,,,,Shaggy white fur and a blue face
+unicorn,character,Unicorn,ultra,coins,3000,,yes,unicorn,,,,,,A golden horn and a rainbow mane
+oni,character,Oni,ultra,coins,3000,,yes,oni,,,,,,A red ogre with horns and tiger-striped shorts
+lavagolem,character,Lava golem,ultra,coins,3200,,yes,lavagolem,,,,,,"Dark rock with glowing cracks, for hot planets"
+frostgolem,character,Frost golem,ultra,coins,3200,,yes,frostgolem,,,,,,"Made of ice, with crystal spikes, for ice planets"
+dragon,character,Dragon,ultra,coins,3500,,yes,dragon,,,,,,"Horns, wings and a spade-tipped tail"
 kitsune,character,Kitsune,ultra,coins,3800,,yes,kitsune,,,,,,
 moonrabbit,character,Moon rabbit,legendary,coins,5000,,yes,moonrabbit,,,,,,
+starchild,character,Star child,legendary,coins,5000,,yes,starchild,,,,,,"Made of night sky, with star eyes"
+phoenix,character,Phoenix,legendary,coins,5500,,yes,phoenix,,,,,,A firebird with flaming wings
+goldmech,character,Golden mech,legendary,coins,5500,,yes,goldmech,,,,,,A shiny golden robot with a glowing core
 meteor,character,Meteor,legendary,coins,6000,,yes,meteor,,,,,,
 ninja,character,Ninja,rare,achievement,,page,no,ninja,,,,,,Fill a stamp book page
 robot,character,Robot,mega,achievement,,stamps10,no,robot,,,,,,Collect 10 stamps
@@ -29,43 +61,98 @@ flower,hat,Flower,common,coins,60,,yes,flower,,,,,,
 bow,hat,Big bow,common,coins,60,,yes,bow,,,,,,
 cap,hat,Baseball cap,common,coins,60,,yes,cap,,,,,,
 sweatband,hat,Sweatband,common,coins,60,,yes,sweatband,,,,,,
+sprout,hat,Leaf sprout,common,coins,60,,yes,sprout,,,,,,A little sprout growing out of your head
+bucket,hat,Bucket hat,common,coins,70,,yes,bucket,,,,,,A sandy bucket hat for the desert planets
+visor,hat,Sun visor,common,coins,70,,yes,visor,,,,,,"Sporty, for sunny planets"
 party,hat,Party hat,common,coins,80,,yes,party,,,,,,
 beanie,hat,Beanie,common,coins,80,,yes,beanie,,,,,,
 beret,hat,Beret,common,coins,80,,yes,beret,,,,,,
+bandana,hat,Bandana,common,coins,80,,yes,bandana,,,,,,Blue with white dots
 bunnyears,hat,Bunny ears,common,coins,90,,yes,bunnyears,,,,,,
 catears,hat,Cat ears,common,coins,90,,yes,catears,,,,,,
+earmuffs,hat,Earmuffs,common,coins,100,,yes,earmuffs,,,,,,Fluffy pink earmuffs for the ice planets
+strawhat,hat,Straw hat,common,coins,100,,yes,strawhat,,,,,,A wide straw hat with a red band
 cowboy,hat,Cowboy hat,rare,coins,120,,yes,cowboy,,,,,,
 propeller,hat,Propeller cap,rare,coins,120,,yes,propeller,,,,,,
+hardhat,hat,Hard hat,common,coins,120,,yes,hardhat,,,,,,Safety first on the climb
+snorkel,hat,Snorkel mask,common,coins,120,,yes,snorkel,,,,,,Pushed up on the forehead
 tophat,hat,Top hat,mega,coins,150,,yes,tophat,,,,,,
+chefhat,hat,Chef hat,rare,coins,150,,yes,chefhat,,,,,,A puffy white toque
+fez,hat,Fez,rare,coins,150,,yes,fez,,,,,,"Red, with a swinging tassel"
+graduation,hat,Graduation cap,rare,coins,180,,yes,graduation,,,,,,With a golden tassel
+bikehelmet,hat,Bike helmet,rare,coins,180,,yes,bikehelmet,,,,,,Teal with vents and a visor
 santa,hat,Santa hat,rare,coins,200,,yes,santa,,,,,,
+headphones,hat,Headphones,rare,coins,200,,yes,headphones,,,,,,Big pink headphones
 antlers,hat,Antlers,rare,coins,220,,yes,antlers,,,,,,
+aviator,hat,Aviator cap,rare,coins,220,,yes,aviator,,,,,,Leather cap with goggles
 wizardhat,hat,Wizard hat,rare,coins,250,,yes,wizardhat,,,,,,
+tricorn,hat,Pirate hat,rare,coins,250,,yes,tricorn,,,,,,A tricorn with a skull and gold trim
+witchhat,hat,Witch hat,rare,coins,250,,yes,witchhat,,,,,,Black with a purple band and a gold buckle
+sombrero,hat,Sombrero,rare,coins,280,,yes,sombrero,,,,,,A huge brim with a colorful band
+horns,hat,Little horns,mega,coins,400,,yes,horns,,,,,,Two little red devil horns
+mushroomhat,hat,Mushroom cap,mega,coins,400,,yes,mushroomhat,,,,,,A red toadstool with white spots
+pumpkinhat,hat,Pumpkin hat,mega,coins,400,,yes,pumpkinhat,,,,,,A grinning jack-o'-lantern
 froghat,hat,Frog hat,mega,coins,450,,yes,froghat,,,,,,
+sushihat,hat,Sushi hat,mega,coins,450,,yes,sushihat,,,,,,"A salmon nigiri, sitting on your head"
 halo,hat,Halo,mega,coins,500,,yes,halo,,,,,,
+cake,hat,Birthday cake,mega,coins,500,,yes,cake,,,,,,"With frosting, sprinkles and a lit candle"
+raincloud,hat,Rain cloud,mega,coins,550,,yes,raincloud,,,,,,"Your own little cloud, raining on you"
 kabuto,hat,Kabuto,mega,coins,600,,yes,kabuto,,,,,,
+ufohat,hat,Mini UFO,mega,coins,600,,yes,ufohat,,,,,,A tiny flying saucer hovering over you
+jester,hat,Jester hat,ultra,coins,700,,yes,jester,,,,,,Two floppy points with bells
+birdnest,hat,Bird's nest,ultra,coins,750,,yes,birdnest,,,,,,A nest with a chick and two blue eggs
+octopus,hat,Octopus,ultra,coins,850,,yes,octopus,,,,,,A pink octopus giving you a hug
 pharaoh,hat,Pharaoh headdress,ultra,coins,900,,yes,pharaoh,,,,,,
+knighthelm,hat,Knight helmet,ultra,coins,900,,yes,knighthelm,,,,,,A full steel helmet with a red plume
 dragonhood,hat,Dragon hood,ultra,coins,1000,,yes,dragonhood,,,,,,
+volcano,hat,Volcano,ultra,coins,1000,,yes,volcano,,,,,,"A smoking volcano, for the hot planets"
 rockethat,hat,Rocket,legendary,coins,1200,,yes,rockethat,,,,,,
+flamecrown,hat,Flame crown,legendary,coins,1300,,yes,flamecrown,,,,,,A crown of living fire
+startiara,hat,Star tiara,legendary,coins,1400,,yes,startiara,,,,,,A golden tiara with three stars
 saturn,hat,Ringed planet,legendary,coins,1500,,yes,saturn,,,,,,
+moons,hat,Orbiting moons,legendary,coins,1500,,yes,moons,,,,,,Three tiny moons circling your head
 viking,hat,Viking helmet,ultra,achievement,,boss,no,viking,,,,,,Beat a boss planet
 crown,hat,Crown,legendary,achievement,,height1000,no,crown,,,,,,Reach 1000 m
 none,backpack,No backpack,common,free,,,no,none,,,,,,
 classic,backpack,Backpack,common,coins,100,,yes,classic,,,,,,
+drawstring,backpack,Drawstring bag,common,coins,100,,yes,drawstring,,,,,,A simple gym bag with white cords
+satchel,backpack,Satchel,common,coins,120,,yes,satchel,,,,,,A leather messenger bag on one strap
+lunchbox,backpack,Lunch box,common,coins,120,,yes,lunchbox,,,,,,A teal lunch box with a star sticker
 cooler,backpack,Cooler box,common,coins,150,,yes,cooler,,,,,,
 hiking,backpack,Hiking pack,common,coins,150,,yes,hiking,,,,,,
 randoseru,backpack,School bag,rare,coins,180,,yes,randoseru,,,,,,Japanese randoseru
 watermelon,backpack,Watermelon,common,coins,200,,yes,watermelon,,,,,,
 bear,backpack,Teddy pack,rare,coins,200,,yes,bear,,,,,,
+strawberrypack,backpack,Strawberry,common,coins,200,,yes,strawberrypack,,,,,,A big juicy strawberry
 turtle,backpack,Turtle shell,mega,coins,250,,yes,turtle,,,,,,
+ladybugwings,backpack,Ladybug shell,rare,coins,300,,yes,ladybugwings,,,,,,Red wing cases with black spots
+icecreampack,backpack,Ice cream,rare,coins,300,,yes,icecreampack,,,,,,Two scoops and a cherry
+skateboard,backpack,Skateboard,rare,coins,350,,yes,skateboard,,,,,,A purple deck with yellow wheels
+snail,backpack,Snail shell,rare,coins,350,,yes,snail,,,,,,A swirly snail shell
+makipack,backpack,Sushi roll,rare,coins,350,,yes,makipack,,,,,,A maki roll with salmon and cucumber
 shield,backpack,Knight's shield,rare,coins,400,,yes,shield,,,,,,
+guitar,backpack,Guitar,rare,coins,400,,yes,guitar,,,,,,An acoustic guitar slung on your back
 froggypack,backpack,Froggy pack,rare,coins,450,,yes,froggypack,,,,,,
 kittypack,backpack,Kitty pack,rare,coins,450,,yes,kittypack,,,,,,
+bunnypack,backpack,Bunny pack,rare,coins,450,,yes,bunnypack,,,,,,A soft white bunny
+surfboard,backpack,Surfboard,rare,coins,450,,yes,surfboard,,,,,,A long blue board with a white stripe
+butterfly,backpack,Butterfly wings,rare,coins,450,,yes,butterfly,,,,,,Orange monarch wings
 treasure,backpack,Treasure chest,rare,coins,500,,yes,treasure,,,,,,
+parachute,backpack,Parachute pack,mega,coins,600,,yes,parachute,,,,,,A skydiver's pack with an orange chute peeking out
+lanternpack,backpack,Paper lantern,mega,coins,650,,yes,lanternpack,,,,,,A red chōchin lantern
+scuba,backpack,Scuba tanks,mega,coins,700,,yes,scuba,,,,,,Twin yellow tanks with a hose
+taiko,backpack,Taiko drum,mega,coins,700,,yes,taiko,,,,,,"A Japanese drum, with sticks"
+batwings,backpack,Bat wings,mega,coins,800,,yes,batwings,,,,,,Spooky purple bat wings
 fairy,backpack,Fairy wings,mega,coins,900,,yes,fairy,,,,,,
 katana,backpack,Twin katana,ultra,coins,1200,,yes,katana,,,,,,
+helipack,backpack,Heli pack,ultra,coins,1300,,yes,helipack,,,,,,A spinning rotor on a mast
 mechpack,backpack,Mech pack,ultra,coins,1400,,yes,mechpack,,,,,,
+angelwings,backpack,Angel wings,ultra,coins,1500,,yes,angelwings,,,,,,Soft white feathered wings
+dragonwings,backpack,Dragon wings,ultra,coins,1800,,yes,dragonwings,,,,,,Big red dragon wings
+miniplanet,backpack,Mini planet,legendary,coins,2000,,yes,miniplanet,,,,,,"Your own little world, floating behind you"
 galaxycape,backpack,Galaxy cape,legendary,coins,2200,,yes,galaxycape,,,,,,
 turbojet,backpack,Turbo jet,legendary,coins,2500,,yes,turbojet,,,,,,
+phoenixwings,backpack,Phoenix wings,legendary,coins,2500,,yes,phoenixwings,,,,,,Wings of fire
 jetpack,backpack,Jetpack,ultra,gift,,,yes,jetpack,,,,,,Gift only
 none,charm,No charm,common,free,,,no,none,,,,,,
 star,charm,Star,common,coins,40,,yes,star,,,,,,
@@ -73,45 +160,100 @@ heart,charm,Heart,common,coins,40,,yes,heart,,,,,,
 sakuramochi,charm,Sakura mochi,common,coins,40,,yes,sakuramochi,,,,,,
 salmon,charm,Salmon nigiri,common,coins,40,,yes,salmon,,,,,,
 tamago,charm,Tamago sushi,common,coins,40,,yes,tamago,,,,,,
+maki,charm,Maki roll,common,coins,40,,yes,maki,,,,,,A cucumber roll
 onigiri,charm,Onigiri,common,coins,50,,yes,onigiri,,,,,,
 mochibun,charm,Mochi bunny,common,coins,50,,yes,mochibun,,,,,,
 taiyaki,charm,Taiyaki,common,coins,50,,yes,taiyaki,,,,,,
+ebifry,charm,Ebi fry,common,coins,50,,yes,ebifry,,,,,,A crispy fried shrimp
+daifuku,charm,Strawberry daifuku,common,coins,50,,yes,daifuku,,,,,,Soft mochi with a strawberry peeking out
+melonpan,charm,Melon pan,common,coins,50,,yes,melonpan,,,,,,A sweet bun with a cookie crust
+teruteru,charm,Teru teru bozu,common,coins,50,,yes,teruteru,,,,,,A little doll that wishes for sunny weather
+dorayaki,charm,Dorayaki,common,coins,50,,yes,dorayaki,,,,,,Two pancakes with sweet bean paste
 dango,charm,Dango,rare,coins,60,,yes,dango,,,,,,
 bell,charm,Bell,rare,coins,60,,yes,bell,,,,,,
+ramune,charm,Ramune,common,coins,60,,yes,ramune,,,,,,A soda bottle with a marble in the neck
+omamori,charm,Omamori,common,coins,60,,yes,omamori,,,,,,A good luck amulet in red and gold
+koi,charm,Koi,common,coins,60,,yes,koi,,,,,,A white and orange koi fish
+uchiwa,charm,Uchiwa fan,common,coins,60,,yes,uchiwa,,,,,,A round summer fan with a red sun
+kokeshi,charm,Kokeshi,common,coins,70,,yes,kokeshi,,,,,,A wooden doll with a flower kimono
+tanuki,charm,Tanuki,common,coins,70,,yes,tanuki,,,,,,A raccoon dog with a leaf on its head
+vpet,charm,Virtual pet,common,coins,80,,yes,vpet,,,,,,A pocket egg with a pixel pet inside
 daruma,charm,Daruma,mega,coins,90,,yes,daruma,,,,,,
+sakurablossom,charm,Sakura,rare,coins,100,,yes,sakurablossom,,,,,,A cherry blossom flower
 kunai,charm,Kunai,rare,coins,120,,yes,kunai,,,,,,
 shuriken,charm,Shuriken,rare,coins,120,,yes,shuriken,,,,,,
+pandacharm,charm,Panda,rare,coins,120,,yes,pandacharm,,,,,,A round panda face
+nekocharm,charm,Neko,rare,coins,120,,yes,nekocharm,,,,,,A calico cat face with whiskers
+crane,charm,Paper crane,rare,coins,130,,yes,crane,,,,,,A folded origami crane
 bento,charm,Bento,rare,coins,140,,yes,bento,,,,,,
+kendama,charm,Kendama,rare,coins,140,,yes,kendama,,,,,,The cup-and-ball toy
 shibacharm,charm,Shiba,rare,coins,150,,yes,shibacharm,,,,,,
+ramen,charm,Ramen,rare,coins,150,,yes,ramen,,,,,,"A bowl with an egg, naruto and chopsticks"
+fuji,charm,Mount Fuji,rare,coins,150,,yes,fuji,,,,,,Snowy Fuji with a red sun behind
 minininja,charm,Mini ninja,rare,coins,160,,yes,minininja,,,,,,
+torii,charm,Torii gate,rare,coins,160,,yes,torii,,,,,,A red shrine gate
 kitsunemask,charm,Kitsune mask,rare,coins,180,,yes,kitsunemask,,,,,,
+chochin,charm,Chōchin lantern,mega,coins,220,,yes,chochin,,,,,,A glowing red paper lantern
+obake,charm,Obake,mega,coins,220,,yes,obake,,,,,,A kawaii little ghost
+minikatana,charm,Mini katana,mega,coins,250,,yes,minikatana,,,,,,A little sword in a black and gold style
+gacha,charm,Gacha capsule,mega,coins,250,,yes,gacha,,,,,,"A capsule toy, with a star inside"
+koinobori,charm,Koinobori,mega,coins,260,,yes,koinobori,,,,,,A carp streamer for Children's Day
+kabutocharm,charm,Kabuto,mega,coins,280,,yes,kabutocharm,,,,,,A tiny samurai helmet
+kappa,charm,Kappa,mega,coins,280,,yes,kappa,,,,,,A river spirit with a water dish on its head
+tengu,charm,Tengu mask,mega,coins,300,,yes,tengu,,,,,,A red mask with a long nose
+onimask,charm,Oni mask,mega,coins,300,,yes,onimask,,,,,,A blue ogre mask with horns and fangs
+sumo,charm,Sumo,mega,coins,300,,yes,sumo,,,,,,A round little sumo wrestler
+shinkansen,charm,Shinkansen,mega,coins,320,,yes,shinkansen,,,,,,A bullet train with a blue stripe
 nekosushi,charm,Neko sushi,mega,coins,350,,yes,nekosushi,,,,,,
+sakurabranch,charm,Sakura branch,ultra,coins,400,,yes,sakurabranch,,,,,,A cherry branch in full bloom
+goldfan,charm,Golden fan,ultra,coins,400,,yes,goldfan,,,,,,"A folding fan in gold, with a red sun"
 koban,charm,Lucky koban,ultra,coins,450,,yes,koban,,,,,,
+tsukimi,charm,Moon rabbit,ultra,coins,450,,yes,tsukimi,,,,,,A rabbit in front of the full moon
 goldshuriken,charm,Golden shuriken,ultra,coins,500,,yes,goldshuriken,,,,,,
 pagoda,charm,Pagoda,ultra,coins,500,,yes,pagoda,,,,,,
+kitsunecharm,charm,Kitsune,ultra,coins,550,,yes,kitsunecharm,,,,,,A white fox spirit with three tails
 mecha,charm,Mecha,ultra,coins,600,,yes,mecha,,,,,,
 ryu,charm,Ryu dragon,ultra,coins,600,,yes,ryu,,,,,,
 crystalshuriken,charm,Crystal shuriken,legendary,coins,700,,yes,crystalshuriken,,,,,,
+hoo,charm,Hō-ō phoenix,legendary,coins,750,,yes,hoo,,,,,,"The Japanese phoenix, with a long rainbow tail"
+minimeteor,charm,Mini meteor,legendary,coins,750,,yes,minimeteor,,,,,,"A meteor from the boss planets, still burning"
 galaxycapsule,charm,Galaxy gacha,legendary,coins,800,,yes,galaxycapsule,,,,,,
 goldneko,charm,Golden maneki-neko,legendary,coins,800,,yes,goldneko,,,,,,
+golddaruma,charm,Golden daruma,legendary,coins,800,,yes,golddaruma,,,,,,A gold daruma for a wish come true
 luckycat,charm,Lucky cat,ultra,gift,,,yes,luckycat,,,,,,Gift only
 minirocket,charm,Mini rocket,legendary,gift,,,yes,minirocket,,,,,,Gift only
 sky,tag,Sky,common,free,,,no,sky,,,,,,The starting tag
 polka,tag,Polka dots,common,coins,60,,yes,polka,,,,,,
 lemonade,tag,Lemonade,common,coins,60,,yes,lemonade,,,,,,
 bubblegum,tag,Bubblegum,common,coins,60,,yes,bubblegum,,,,,,
+peach,tag,Peach,common,coins,60,,yes,peach,,,,,,Soft peach with tiny hearts
 picnic,tag,Picnic,common,coins,80,,yes,picnic,,,,,,
 paws,tag,Paw prints,common,coins,80,,yes,paws,,,,,,
+limeplaid,tag,Lime plaid,common,coins,80,,yes,limeplaid,,,,,,A fresh green picnic plaid
+denim,tag,Denim,common,coins,100,,yes,denim,,,,,,Blue denim with golden stitches
+meadow,tag,Meadow,common,coins,100,,yes,meadow,,,,,,Leaves drifting on a spring breeze
 ocean,tag,Ocean,rare,coins,120,,yes,ocean,,,,,,
 mint,tag,Mint zigzag,rare,coins,120,,yes,mint,,,,,,
+mintchoc,tag,Mint choc chip,common,coins,120,,yes,mintchoc,,,,,,Mint ice cream with chocolate chips
 sakura,tag,Sakura,mega,coins,180,,yes,sakura,,,,,,
+argyle,tag,Argyle,rare,coins,180,,yes,argyle,,,,,,"Purple diamonds, cozy like a sweater"
+snowday,tag,Snow day,rare,coins,200,,yes,snowday,,,,,,"Snowflakes falling, for the ice planets"
 starry,tag,Starry night,mega,coins,220,,yes,starry,,,,,,
+deepsea,tag,Deep sea,rare,coins,220,,yes,deepsea,,,,,,Bubbles rising from the deep
 seigaiha,tag,Seigaiha,rare,coins,250,,yes,seigaiha,,,,,,
+sunset,tag,Sunset,rare,coins,300,,yes,sunset,,,,,,"Orange to purple, with soft rays"
 racing,tag,Racing flag,mega,coins,350,,yes,racing,,,,,,
 matcha,tag,Matcha,mega,coins,400,,yes,matcha,,,,,,
 lava,tag,Lava,mega,coins,500,,yes,lava,,,,,,
+glacier,tag,Glacier,mega,coins,500,,yes,glacier,,,,,,Sparkling ice diamonds
+aurora,tag,Aurora,mega,coins,600,,yes,aurora,,,,,,Northern lights over a starry sky
+thunder,tag,Thunder,ultra,coins,750,,yes,thunder,,,,,,Lightning bolts on a stormy night
 sakurastorm,tag,Sakura storm,ultra,coins,800,,yes,sakurastorm,,,,,,
+goldrush,tag,Gold rush,ultra,coins,900,,yes,goldrush,,,,,,"Coins raining on gold, with rays"
+nebula,tag,Nebula,ultra,coins,1000,,yes,nebula,,,,,,A pink space cloud full of stars
 holo,tag,Holographic,legendary,coins,1300,,yes,holo,,,,,,
+galaxy,tag,Galaxy,legendary,coins,1500,,yes,galaxy,,,,,,Deep space with drifting stars and light
+supporter,tag,Supporter,legendary,achievement,,supporter,no,supporter,,,,,,Thank-you for buying Remove Ads
 sweetheart,tag,Sweetheart,rare,gift,,,yes,sweetheart,,,,,,Gift only
 nightsakura,tag,Night Sakura,ultra,gift,,,yes,sakura,2A1B47,5B3A78,FFB8D0,,,Example: a recolored tag (top/bottom/pattern colors)
 sunburst,tag,Sunburst,ultra,gift,,,yes,sunburst,,,,,,Gift only

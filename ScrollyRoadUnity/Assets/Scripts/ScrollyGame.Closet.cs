@@ -86,6 +86,7 @@ public partial class ScrollyGame
         "height1000" => BestEver >= 1000,
         "page" => BookPages.Any(e => Enumerable.Range(0, PageSize(e)).All(i => Progress.StampCount(StampId(e, i)) > 0)),
         "boss" => Progress.BossesBeaten > 0,
+        "supporter" => Progress.RemoveAds,
         _ => false,
     };
 
@@ -562,7 +563,12 @@ public partial class ScrollyGame
             SetClosetAction("Buy", affordable ? Ui.Gold : Ui.Grey, affordable ? Ui.GoldShade : Ui.GreyShade);
             closetAction.Price.transform.parent.parent.gameObject.SetActive(true);
             closetAction.Price.text = closetSelected.Price.ToString();
-            if (!affordable) closetHint.text = $"Collect {closetSelected.Price - Progress.Coins} more coins";
+            if (!affordable) closetHint.text = $"Collect {closetSelected.Price - Progress.Coins} more coins, or tap your coins";
+        }
+        else if (closetSelected.Achievement == "supporter")
+        {
+            SetClosetAction("Support UPSCROLL", Ui.Gold, Ui.GoldShade);
+            closetHint.text = "A thank-you for buying Remove Ads";
         }
         else if (closetSelected.Achievement != null && Cosmetics.AchievementText.TryGetValue(closetSelected.Achievement, out var goal))
         {
@@ -594,6 +600,11 @@ public partial class ScrollyGame
         {
             if (Wearing(item)) return;
             Wear(item);
+            return;
+        }
+        if (item.Achievement == "supporter")
+        {
+            ShowShop(true);   // the thank-you for Remove Ads
             return;
         }
         if (item.Price <= 0 || !Progress.Spend(item.Price))

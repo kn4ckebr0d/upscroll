@@ -104,11 +104,11 @@ public partial class ScrollyGame
             switch (pickup.Kind)
             {
                 case PickupKind.Coin:
-                    runCoins++;
-                    Progress.Coins++;
+                    runCoins += CoinValue;
+                    Progress.Coins += CoinValue;
                     Synth.Instance.Coin();
                     Haptics.Tick(0.6f);
-                    FlyCoin(pickup.Node.transform.position);
+                    FlyCoin(pickup.Node.transform.position, CoinValue);
                     break;
                 case PickupKind.Water:
                     stamina = Mathf.Min(1, stamina + Tuning.WaterDropStamina);

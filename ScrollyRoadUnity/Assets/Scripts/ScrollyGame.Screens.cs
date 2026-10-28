@@ -20,7 +20,7 @@ public partial class ScrollyGame
     RawImage nextUnlockThumb;
     Text nextUnlockName, nextUnlockCount;
     Cosmetic nextUnlock;
-    HudButton settingsButton, stampsButton, lifeButton, continueButton, declineButton, playAgainButton;
+    HudButton settingsButton, stampsButton, lifeButton, continueButton, continueAdButton, declineButton, playAgainButton, doubleCoinsButton;
     HudButton soundToggle, hapticsToggle, shakeToggle, bossTestToggle, settingsDone;
     static Texture2D patternTexture;
     static Sprite cloudSprite;
@@ -30,6 +30,8 @@ public partial class ScrollyGame
     {
         get
         {
+            if (adPanel != null && adPanel.activeSelf) return (RectTransform)adPanel.transform;
+            if (shopPanel != null && shopPanel.activeSelf) return (RectTransform)shopPanel.transform;
             if (boardPanel != null && boardPanel.activeSelf) return (RectTransform)boardPanel.transform;
             if (settingsPanel != null && settingsPanel.activeSelf) return (RectTransform)settingsPanel.transform;
             if (bookPanel != null && bookPanel.activeSelf) return (RectTransform)bookPanel.transform;
@@ -50,6 +52,8 @@ public partial class ScrollyGame
         BuildGift();
         BuildBoard();
         BuildSettings();
+        BuildShop();
+        BuildTestAd();
     }
 
     // MARK: - Title
@@ -361,6 +365,11 @@ public partial class ScrollyGame
         continueButton.Label.fontSize = 22;
         declineButton = MakeButton(panel, Bottom, new Vector2(0, 60), new Vector2(170, 48), Ui.Cream, Ui.CreamShade, Ui.BrownSoft, DeclineContinue);
         declineButton.Label.text = "No thanks";
+        // Or for free: a video (once per run).
+        continueAdButton = MakeButton(panel, Bottom, new Vector2(0, 212), new Vector2(300, 56), Ui.Gold, Ui.GoldShade, Ui.OnGold,
+            ContinueWithAd, icon: Ui.Icon("play"));
+        continueAdButton.Label.text = "Free with a video";
+        continueAdButton.Icon.color = Ui.OnGold;
     }
 
     void ShowContinueOffer(bool visible)
@@ -370,6 +379,7 @@ public partial class ScrollyGame
         HideMessages();
         continueHeight.text = $"{Mathf.FloorToInt(anchorY)}<size=22><color=#A48F6C> m</color></size>";
         continueButton.Price.text = ContinuePrice.ToString();
+        continueAdButton.Rect.gameObject.SetActive(CanContinueWithAd);
         RefreshShop();
         StartCoroutine(Pop(continueCard, 0.85f));
     }
@@ -400,6 +410,13 @@ public partial class ScrollyGame
         gameOverCoins = Ui.Label(coins.transform, "+0", 20, Color.white, TextAnchor.MiddleRight, shadow: true);
         gameOverCoins.rectTransform.offsetMax = new Vector2(-18, 0);
         Ui.Coin(coins.transform.parent, new Vector2(0, 0.5f), new Vector2(18, 0), 32);
+        // Double them with a video.
+        doubleCoinsButton = MakeButton(t, Center, new Vector2(66, 11), new Vector2(112, 40), Ui.Gold, Ui.GoldShade, Ui.OnGold,
+            DoubleCoinsWithAd, icon: Ui.Icon("play"));
+        doubleCoinsButton.Label.text = "x2";
+        doubleCoinsButton.Label.fontSize = 20;
+        doubleCoinsButton.Icon.color = Ui.OnGold;
+        doubleCoinsButton.Rect.gameObject.SetActive(false);
 
         var stampsTitle = Ui.Label(t, "STAMPS THIS RUN", 14, Ui.BrownSoft);
         stampsTitle.rectTransform.anchoredPosition = new Vector2(0, -33);
@@ -494,6 +511,8 @@ public partial class ScrollyGame
         gameOverDelta.text = "";
         gameOverBest.gameObject.SetActive(false);
         gameOverCoins.text = "+0";
+        doubleCoinsButton.Rect.gameObject.SetActive(false);
+        gameOverCoinPill.anchoredPosition = new Vector2(0, gameOverCoinPill.anchoredPosition.y);
         bool anyStamps = runStamps.Count > 0;
         stampsLabel.SetActive(anyStamps);
         stampRow.gameObject.SetActive(anyStamps);
@@ -544,6 +563,13 @@ public partial class ScrollyGame
         }
 
         ShowNextUnlock();
+        if (runCoins >= Tuning.AdDoubleCoinsMin && !coinsDoubled && RewardedAdReady)
+        {
+            // Make room next to the coins for "x2 with a video".
+            gameOverCoinPill.anchoredPosition = new Vector2(-62, gameOverCoinPill.anchoredPosition.y);
+            doubleCoinsButton.Rect.gameObject.SetActive(true);
+            StartCoroutine(Pop(doubleCoinsButton.Rect, 0.8f));
+        }
 
         // Stamps pop in one by one.
         const int slots = 5;

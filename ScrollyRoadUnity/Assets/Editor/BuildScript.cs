@@ -43,6 +43,15 @@ public static class BuildScript
         var icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/AppIcon/AppIcon.png");
         if (icon != null) PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
         ApplySplash(target);
+
+        // Unity's test store "buys" instantly (no dialog) while Tuning.TestStore is on.
+        var named = UnityEditor.Build.NamedBuildTarget.FromBuildTargetGroup(BuildPipeline.GetBuildTargetGroup(target));
+        var defines = PlayerSettings.GetScriptingDefineSymbols(named).Split(';').Where(d => d.Length > 0).ToList();
+        if (!defines.Contains("IAP_FAKE_STORE_DEFAULT"))
+        {
+            defines.Add("IAP_FAKE_STORE_DEFAULT");
+            PlayerSettings.SetScriptingDefineSymbols(named, string.Join(";", defines));
+        }
     }
 
     /// The splash: our poster (rendered with -scrollyPoster, logo on top) instead of the Unity logo. On iOS it's
