@@ -215,6 +215,21 @@ public partial class ScrollyGame : MonoBehaviour
         ParseTestArguments();
         ResetWorld();
         _ = Online.Connect();   // in the background; the game never waits for it
+        StartCoroutine(HideLaunchPoster());
+    }
+
+#if UNITY_IOS && !UNITY_EDITOR
+    [System.Runtime.InteropServices.DllImport("__Internal")] static extern void ScrollyHideLaunchPoster(float delay);
+#endif
+
+    /// iPhone: the launch poster stays over the game until the title has been drawn, and at least a moment.
+    IEnumerator HideLaunchPoster()
+    {
+        yield return null;
+        yield return new WaitForEndOfFrame();
+#if UNITY_IOS && !UNITY_EDITOR
+        ScrollyHideLaunchPoster(Mathf.Max(0, Tuning.LaunchPosterSeconds - Time.realtimeSinceStartup));
+#endif
     }
 
     void Update()
