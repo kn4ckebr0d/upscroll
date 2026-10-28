@@ -81,11 +81,22 @@ public class Climber : MonoBehaviour
         ApplyArms();
     }
 
+    // Reaching up the arm stretches; hanging down it's shorter, with the hand at the hip.
+    const float ReachLength = 0.5f, HangLength = 0.28f;
+
     void ApplyArms()
     {
         if (leftArm == null) return;
         leftArm.localRotation = Quaternion.Euler(0, 0, armAngle);
         rightArm.localRotation = Quaternion.Euler(0, 0, -armAngle);
+        float length = Mathf.Lerp(ReachLength, HangLength, armAngle / 180f);
+        foreach (var arm in new[] { leftArm, rightArm })
+        {
+            var sleeve = arm.GetChild(0);
+            sleeve.localScale = new Vector3(0.15f, length, 0.15f);
+            sleeve.localPosition = new Vector3(0, length / 2, 0);
+            arm.GetChild(1).localPosition = new Vector3(0, length + 0.05f, 0);
+        }
     }
 
     /// Puts the whole climber on one layer (the closet preview renders its own).
@@ -99,8 +110,8 @@ public class Climber : MonoBehaviour
         var arm = new GameObject("arm").transform;
         arm.SetParent(rig, false);
         arm.localPosition = new Vector3(x, 0.7f, 0);
-        Voxel.Box(arm, new Vector3(0.15f, 0.5f, 0.15f), shirt, new Vector3(0, 0.25f, 0));
-        Voxel.Box(arm, new Vector3(0.17f, 0.15f, 0.17f), skin, new Vector3(0, 0.55f, 0));
+        Voxel.Box(arm, new Vector3(0.15f, ReachLength, 0.15f), shirt, new Vector3(0, ReachLength / 2, 0));   // the sleeve (sized in ApplyArms)
+        Voxel.Box(arm, new Vector3(0.17f, 0.15f, 0.17f), skin, new Vector3(0, ReachLength + 0.05f, 0));      // the hand
         return arm;
     }
 
