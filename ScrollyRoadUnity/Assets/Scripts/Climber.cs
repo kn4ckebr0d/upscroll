@@ -7,6 +7,7 @@ public class Climber : MonoBehaviour
     Transform rig;
     Transform leftArm;
     Transform rightArm;
+    float armAngle = 180, armTarget = 180;   // 0: reaching up (climbing), 180: hanging down (standing around)
 
     public Transform HatAnchor { get; private set; }
 
@@ -62,6 +63,29 @@ public class Climber : MonoBehaviour
 
         leftArm = MakeArm(-0.38f, look.Arms, look.Hands);
         rightArm = MakeArm(0.38f, look.Arms, look.Hands);
+        ApplyArms();
+    }
+
+    /// Arms up only while climbing; down when standing, resting, in menus. They swing over the outside.
+    public void SetArmsDown(bool down, bool instant = false)
+    {
+        armTarget = down ? 180 : 0;
+        if (instant) armAngle = armTarget;
+        ApplyArms();
+    }
+
+    void LateUpdate()
+    {
+        if (armAngle == armTarget || leftArm == null) return;
+        armAngle = Mathf.MoveTowards(armAngle, armTarget, Time.deltaTime * 900);
+        ApplyArms();
+    }
+
+    void ApplyArms()
+    {
+        if (leftArm == null) return;
+        leftArm.localRotation = Quaternion.Euler(0, 0, armAngle);
+        rightArm.localRotation = Quaternion.Euler(0, 0, -armAngle);
     }
 
     /// Puts the whole climber on one layer (the closet preview renders its own).

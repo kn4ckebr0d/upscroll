@@ -160,6 +160,7 @@ public partial class ScrollyGame
         var climber = new GameObject("Poster climber").AddComponent<Climber>();
         climber.transform.SetParent(root, false);
         climber.Build(Cosmetics.Character(character), Cosmetics.Hat(hat));
+        climber.SetArmsDown(false, instant: true);   // reaching up
         climber.transform.localPosition = position;
         climber.transform.localRotation = Quaternion.Euler(-lean, 180 + turn, 0);
         // Everything above the shoulders (head, face, ears, hat) goes on a neck, which tips back.

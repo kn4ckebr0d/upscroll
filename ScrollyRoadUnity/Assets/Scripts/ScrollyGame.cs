@@ -263,6 +263,7 @@ public partial class ScrollyGame : MonoBehaviour
         GenerateContent();
         UpdateHUD();
         UpdateBoostPill();
+        climber.SetArmsDown(!ArmsUp);
     }
 
     /// Back to the ground for a new run.
@@ -788,6 +789,10 @@ public partial class ScrollyGame : MonoBehaviour
     }
 
     // MARK: - Climbing
+
+    /// Arms reach up only while actually climbing (or tumbling); the rest of the time they hang down.
+    bool ArmsUp => phase == Phase.Falling ||
+                   phase == Phase.Playing && !perched && (stretch > 0.03f || lastTouchCount > 0);
 
     void StartRun()
     {
