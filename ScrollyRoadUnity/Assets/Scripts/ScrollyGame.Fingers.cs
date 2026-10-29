@@ -48,7 +48,7 @@ public partial class ScrollyGame
             if (Progress.HintCount("turn") < 3)
             {
                 Progress.CountHint("turn");
-                ShowTip("Climb with your other finger!\nHand over hand.", 2.5f);
+                ShowTip($"Climb with your other {Digit}!\nHand over hand.", 2.5f);
             }
         }
         return 0;
@@ -66,10 +66,20 @@ public partial class ScrollyGame
     }
 
     /// A finger lifted. If it made a real stroke, every finger that stayed put during it owes the next one.
-    void FingerLifted(int id)
+    void FingerLifted(Touch touch)
     {
+        int id = touch.touchId;
         if (!fingers.TryGetValue(id, out var lifted)) return;
         fingers.Remove(id);
+        // Alpha: note the stroke for the stroke log (playtests: how do people really hold the phone?).
+        if (Progress.StrokeLogOn && lifted.Drove >= 0.3f && phase is Phase.Playing or Phase.Falling)
+            StrokeLog.Add(new StrokeLog.Stroke
+            {
+                Start = touch.startScreenPosition.y / Mathf.Max(1, Screen.height),
+                Length = (touch.startScreenPosition.y - touch.screenPosition.y) / Mathf.Max(1, Screen.height),
+                Meters = lifted.Drove,
+                Thumb = Tuning.ThumbTuning,
+            });
         if (lifted.Drove < 1f) return;
         foreach (var other in fingers.Values)
             if (other.LastDroveAt < lifted.FirstDroveAt) other.SatOut++;

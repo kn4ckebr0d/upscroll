@@ -21,7 +21,7 @@ public partial class ScrollyGame
     Text nextUnlockName, nextUnlockCount;
     Cosmetic nextUnlock;
     HudButton settingsButton, stampsButton, lifeButton, continueButton, continueAdButton, declineButton, playAgainButton, doubleCoinsButton;
-    HudButton soundToggle, hapticsToggle, shakeToggle, bossTestToggle, settingsDone;
+    HudButton soundToggle, hapticsToggle, shakeToggle, bossTestToggle, thumbToggle, settingsDone;
     static Texture2D patternTexture;
     static Sprite cloudSprite;
 
@@ -33,6 +33,7 @@ public partial class ScrollyGame
             if (adPanel != null && adPanel.activeSelf) return (RectTransform)adPanel.transform;
             if (shopPanel != null && shopPanel.activeSelf) return (RectTransform)shopPanel.transform;
             if (boardPanel != null && boardPanel.activeSelf) return (RectTransform)boardPanel.transform;
+            if (strokeLogPanel != null && strokeLogPanel.activeSelf) return (RectTransform)strokeLogPanel.transform;
             if (settingsPanel != null && settingsPanel.activeSelf) return (RectTransform)settingsPanel.transform;
             if (bookPanel != null && bookPanel.activeSelf) return (RectTransform)bookPanel.transform;
             if (closetPanel != null && closetPanel.activeSelf) return (RectTransform)closetPanel.transform;
@@ -52,6 +53,7 @@ public partial class ScrollyGame
         BuildGift();
         BuildBoard();
         BuildSettings();
+        BuildStrokeLog();
         BuildShop();
         BuildTestAd();
     }
@@ -173,6 +175,7 @@ public partial class ScrollyGame
         SetToggle(hapticsToggle, Haptics.Enabled);
         SetToggle(shakeToggle, Progress.ShakeOn);
         SetToggle(bossTestToggle, Progress.BossFirst);
+        SetToggle(thumbToggle, Tuning.ThumbTuning);
     }
 
     // MARK: - Backdrop
@@ -253,19 +256,32 @@ public partial class ScrollyGame
         howTo.Label.text = "How to play";
         howTo.Icon.color = Ui.OnGold;
 
-        // Alpha only: reach a boss planet quickly to try it.
-        bossTestToggle = MakeToggle(panel, 0, "Alpha: boss next", StampArt.Icon(5, 1), ToggleBossTest);
-        bossTestToggle.Rect.anchorMin = bossTestToggle.Rect.anchorMax = Bottom;
-        bossTestToggle.Rect.anchoredPosition = new Vector2(0, 150);
-        bossTestToggle.Rect.sizeDelta = new Vector2(300, 48);
-        // Alpha only: a fresh daily gift right away, to try the gift again.
-        var giftTest = MakeButton(panel, Bottom, new Vector2(0, 206), new Vector2(300, 48), Ui.CreamShade, Ui.GreyShade, Ui.Brown, ResetGiftForTest, icon: Ui.Icon("gift"));
-        giftTest.Face.color = Voxel.Hex(0xF3E9CC);
-        giftTest.Label.text = "Alpha: new daily gift";
+        // Alpha only, for testing and playtests.
+        var alphaTitle = Ui.Label(Ui.Rect(panel, "AlphaTitle", Bottom, new Vector2(0, 244), new Vector2(300, 20)), "ALPHA TESTING", 13, Color.white, shadow: true);
+        alphaTitle.raycastTarget = false;
+        bossTestToggle = MakeAlphaButton(panel, new Vector2(-76, 206), "Boss next", ToggleBossTest, toggle: true);   // reach a boss planet quickly
+        MakeAlphaButton(panel, new Vector2(76, 206), "New gift", ResetGiftForTest);                                // a fresh daily gift right away
+        thumbToggle = MakeAlphaButton(panel, new Vector2(-76, 150), "Thumb feel", ToggleThumbTuning, toggle: true);  // see Tuning.ThumbTuning
+        MakeAlphaButton(panel, new Vector2(76, 150), "Stroke log", () => ShowStrokeLog(true));
         settingsDone = MakeButton(panel, Bottom, new Vector2(0, 72), new Vector2(240, 58), Ui.Blue, Ui.BlueShade, Color.white,
             () => ShowSettings(false), icon: Ui.Icon("close"));
         settingsDone.Label.text = "Done";
         settingsDone.Label.fontSize = 22;
+    }
+
+    /// A small button in the alpha grid; a toggle gets an ON/OFF pill.
+    HudButton MakeAlphaButton(Transform parent, Vector2 position, string label, System.Action action, bool toggle = false)
+    {
+        var button = MakeButton(parent, Bottom, position, new Vector2(146, 46), Ui.CreamShade, Ui.GreyShade, Ui.Brown, action);
+        button.Face.color = Voxel.Hex(0xF3E9CC);
+        button.Label.text = label;
+        button.Label.fontSize = 15;
+        if (!toggle) return button;
+        button.Label.alignment = TextAnchor.MiddleLeft;
+        button.Label.rectTransform.offsetMin = new Vector2(14, 0);
+        var pill = Ui.Pill(button.Face.transform, new Vector2(1, 0.5f), new Vector2(-30, 0), new Vector2(46, 26), Ui.Blue, Ui.BlueShade, 2);
+        button.Price = Ui.Label(pill.transform, "", 12, Color.white, TextAnchor.MiddleCenter, shadow: true);
+        return button;
     }
 
     HudButton MakeToggle(Transform parent, float y, string label, Sprite icon, System.Action action)
@@ -304,6 +320,16 @@ public partial class ScrollyGame
         Haptics.Enabled = Progress.HapticsOn = !Progress.HapticsOn;
         Progress.Save();
         Haptics.Tick(1f);
+        Synth.Instance.Click();
+        RefreshMenus();
+    }
+
+    /// Alpha: thumb tuning on or off (wider view, climber higher, tutorial in the bottom half).
+    void ToggleThumbTuning()
+    {
+        Tuning.ThumbTuning = Progress.ThumbTuning = !Progress.ThumbTuning;
+        Progress.Save();
+        cam.orthographicSize = Tuning.ViewHeight / 2f;
         Synth.Instance.Click();
         RefreshMenus();
     }

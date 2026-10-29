@@ -84,12 +84,16 @@ public partial class ScrollyGame
         StartCoroutine(Pop((RectTransform)tutorialGroup.transform, 0.9f));
     }
 
-    /// Tracks on either side of the climber, from above it down to the thumb zone.
+    /// What to call the thing you climb with: thumbs, with thumb tuning on.
+    static string Digit => Tuning.ThumbTuning ? "thumb" : "finger";
+
+    /// Tracks on either side of the climber, from above it down to the thumb zone (with thumb tuning: all of
+    /// them in the bottom half, where thumbs naturally go).
     void LayoutTracks()
     {
         float h = canvasRect.rect.height;
-        trackTopY = h * 0.2f;
-        trackBottomY = -h * 0.32f;
+        trackTopY = Tuning.ThumbTuning ? h * 0.02f : h * 0.2f;
+        trackBottomY = Tuning.ThumbTuning ? -h * 0.4f : -h * 0.32f;
         circleTopY = trackTopY - 48;
         for (int i = 0; i < 2; i++)
         {
@@ -258,10 +262,11 @@ public partial class ScrollyGame
         {
             case TutorialStep.Hold:
                 if (Time.unscaledTime < tutorialOopsUntil)
-                    ShowCaption("Oops! Keep a finger on the screen,\nor you slide back down", new Vector2(0, trackTopY + 46));
+                    ShowCaption($"Oops! Keep a {Digit} on the screen,\nor you slide back down", new Vector2(0, trackTopY + 46));
                 else
-                    ShowCaption(tutorialStrokesDone > 0 ? "Now hold the other circle"
-                        : tutorialWarmUp ? "Quick warm-up! Hold the circle" : "Hold the circle", new Vector2(0, trackTopY + 46));
+                    ShowCaption(tutorialStrokesDone > 0 ? $"Now hold the other circle\nwith your other {Digit}"
+                        : tutorialWarmUp ? "Quick warm-up! Hold the circle"
+                        : Tuning.ThumbTuning ? "Use both thumbs, hand over hand!\nHold the circle" : "Hold the circle", new Vector2(0, trackTopY + 46));
                 break;
 
             case TutorialStep.Swipe:
@@ -341,7 +346,7 @@ public partial class ScrollyGame
             sideCircle.gameObject.SetActive(true);
             sideCircle.anchoredPosition = new Vector2(at.x > 0 ? -104 : 104, Mathf.Min(at.y + 190, trackTopY - 50));
             sideCircle.localScale = Vector3.one * pulse;
-            ShowCaption("Swipe left or right\nwith your other finger", new Vector2(0, trackTopY + 46));
+            ShowCaption($"Swipe left or right\nwith your other {Digit}", new Vector2(0, trackTopY + 46));
         }
         else
         {
@@ -351,7 +356,7 @@ public partial class ScrollyGame
             trackCircleFaces[0].color = Ui.Gold;
             trackCircleLabels[0].color = Ui.OnGold;
             holdTag.anchoredPosition = waiting + new Vector2(0, 66);
-            ShowCaption("Hold with one finger", new Vector2(0, trackTopY + 46));
+            ShowCaption($"Hold with one {Digit}", new Vector2(0, trackTopY + 46));
         }
     }
 }

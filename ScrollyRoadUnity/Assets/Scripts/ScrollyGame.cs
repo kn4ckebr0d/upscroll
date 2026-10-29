@@ -68,7 +68,7 @@ public partial class ScrollyGame : MonoBehaviour
     int toneStep;
     float lastBlipY;
 
-    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyPoster <dir>, -scrollyShop [pack], -scrollyAd, -scrollyBoard, -scrollyBoardDemo, -scrollyInterruptTest, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
+    // Test harness (Mac builds): -scrollyAutopilot, -scrollyGod, -scrollyStartZone <n>, -scrollyBook, -scrollyBookTurn, -scrollySettings, -scrollyCloset, -scrollyClosetTab <kind>, -scrollyInspect, -scrollyInspectFull, -scrollyWearTag <id>, -scrollyTagTour, -scrollyCatalog <dir>, -scrollyPoster <dir>, -scrollyShop [pack], -scrollyAd, -scrollyStrokeLog, -scrollyBoard, -scrollyBoardDemo, -scrollyInterruptTest, -scrollyGift, -scrollyGiftTaps, -scrollyAllStamps,
     // -scrollyShotDir <dir> -scrollyShots <n> -scrollyShotInterval <s> -scrollyShotDelay <s>
     bool autopilot;
     bool god;
@@ -324,8 +324,11 @@ public partial class ScrollyGame : MonoBehaviour
 
     // MARK: - Setup
 
+    float climberFraction = Tuning.TitleClimberScreenFraction;   // where the climber is on screen right now (eases between title and climbing)
+
     void SetupCamera()
     {
+        Tuning.ThumbTuning = Progress.ThumbTuning;
         cam = new GameObject("Camera").AddComponent<Camera>();
         cam.gameObject.AddComponent<AudioListener>();
         cam.tag = "MainCamera";
@@ -693,7 +696,7 @@ public partial class ScrollyGame : MonoBehaviour
                 }
             if (interrupted) return;
         }
-        float metersPerPixel = Tuning.ViewHeight / Mathf.Max(1, Screen.height);
+        float metersPerPixel = Tuning.ViewHeight / Mathf.Max(1, Screen.height) * Tuning.PullGain;
         foreach (var touch in Touch.activeTouches)
         {
             if (touch.phase == TouchPhase.Began)
@@ -719,7 +722,7 @@ public partial class ScrollyGame : MonoBehaviour
                 }
                 else if (touch.touchId == bookDragTouch) EndBookDrag(touch);
                 if (TutorialActive) TutorialTouchEnded(touch);
-                FingerLifted(touch.touchId);
+                FingerLifted(touch);
                 continue;
             }
             if (closetPanel.activeSelf) closetScroll.Drag(touch, canvasRect.localScale.y);
@@ -1029,10 +1032,13 @@ public partial class ScrollyGame : MonoBehaviour
             Phase.Falling => Mathf.Max(fallFloorY, ClimberY),
             Phase.Launching => launchRocket != null ? launchRocket.transform.position.y : ClimberY,
             Phase.Reviving => taxiRocket != null ? taxiRocket.transform.position.y : ClimberY,
-            Phase.GameOver => cameraFocusY - Tuning.ViewHeight * (0.5f - Tuning.ClimberScreenFraction),
+            Phase.GameOver => cameraFocusY - Tuning.ViewHeight * (0.5f - climberFraction),
             _ => anchorY + stretch,
         };
-        focusY += Tuning.ViewHeight * (0.5f - Tuning.ClimberScreenFraction);
+        // On the title the climber stands low, under the logo; climbing, higher up (out from under the thumbs).
+        float fraction = phase == Phase.Title ? Tuning.TitleClimberScreenFraction : Tuning.ClimberScreenFraction;
+        if (phase != Phase.GameOver) climberFraction = Mathf.MoveTowards(climberFraction, fraction, dt * 0.25f);
+        focusY += Tuning.ViewHeight * (0.5f - climberFraction);
         cameraFocusY = focusY;
 
         var offset = Vector3.zero;
@@ -1151,6 +1157,9 @@ public partial class ScrollyGame : MonoBehaviour
                 case "-scrollyShop":
                     new GameObject("ShopTest").AddComponent<CoroutineHost>().StartCoroutine(ShopForTest(next));
                     break;
+                case "-scrollyStrokeLog":
+                    new GameObject("StrokeLogTest").AddComponent<CoroutineHost>().StartCoroutine(StrokeLogForTest());
+                    break;
                 case "-scrollyAd":
                     new GameObject("AdTest").AddComponent<CoroutineHost>().StartCoroutine(AdForTest());
                     break;
@@ -1218,6 +1227,13 @@ public partial class ScrollyGame : MonoBehaviour
         yield return new WaitForSecondsRealtime(2f);
         var row = packRows.Find(r => r.Pack == pack);
         if (row != null) BuyPack(row);
+    }
+
+    /// -scrollyStrokeLog: the stroke log screen.
+    IEnumerator StrokeLogForTest()
+    {
+        yield return null;
+        ShowStrokeLog(true);
     }
 
     /// -scrollyAd: the continue offer's free-continue video (the test ad).

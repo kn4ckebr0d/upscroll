@@ -92,8 +92,14 @@ public static class Tuning
     public const int ToneSteps = 12;                     // top note, reached just before the next checkpoint
 
     // Camera: tilted orthographic, Crossy Road style.
-    public const float ViewHeight = 18f;                 // meters visible vertically
-    public const float ClimberScreenFraction = 0.3f;     // where the climber sits on screen, from the bottom
+    // Thumb tuning (alpha switch, on by default): most people climb with their thumbs in the bottom half of the
+    // screen, so the view shows more wall (every stroke climbs further, still 1:1 under the thumb) and the
+    // climber sits higher, out from under the thumbs.
+    public static bool ThumbTuning = true;
+    public static float ViewHeight => ThumbTuning ? 23f : 18f;                 // meters visible vertically
+    public static float ClimberScreenFraction => ThumbTuning ? 0.42f : 0.3f;  // where the climber sits on screen while climbing, from the bottom
+    public const float TitleClimberScreenFraction = 0.3f;                     // on the title screen (under the logo)
+    public static float PullGain => ThumbTuning ? 1f : 1f;                     // meters per meter of thumb travel (above 1.3 starts to feel slippery)
     public const float CameraPitch = 18f;                // degrees looking down
     public const float CameraYaw = 22f;                  // degrees looking in from the right
     public const float CameraDistance = 20f;

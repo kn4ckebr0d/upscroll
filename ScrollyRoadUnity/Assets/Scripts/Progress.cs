@@ -212,6 +212,20 @@ public static class Progress
         set => PlayerPrefs.SetString("boostUntil", value.Ticks.ToString());
     }
 
+    /// Alpha: the thumb tuning switch (see Tuning.ThumbTuning).
+    public static bool ThumbTuning
+    {
+        get => PlayerPrefs.GetInt("thumbTuning", 1) == 1;
+        set => PlayerPrefs.SetInt("thumbTuning", value ? 1 : 0);
+    }
+
+    /// Alpha: whether strokes go into the stroke log (off by default, so the designer's own strokes stay out).
+    public static bool StrokeLogOn
+    {
+        get => PlayerPrefs.GetInt("strokeLogOn", 0) == 1;
+        set => PlayerPrefs.SetInt("strokeLogOn", value ? 1 : 0);
+    }
+
     /// Runs played in total (ads wait until you've had a few).
     public static int RunsPlayed
     {
