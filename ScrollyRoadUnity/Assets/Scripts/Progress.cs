@@ -212,10 +212,14 @@ public static class Progress
         set => PlayerPrefs.SetString("boostUntil", value.Ticks.ToString());
     }
 
-    /// Alpha: the feel switch (see Tuning.Feel). Thumb+ unless chosen otherwise.
+    /// Alpha: the feel switch (see Tuning.Feel). Mix unless chosen otherwise (Thumb+ is retired and becomes Mix).
     public static Tuning.FeelMode Feel
     {
-        get => (Tuning.FeelMode)Mathf.Clamp(PlayerPrefs.GetInt("feel", (int)Tuning.FeelMode.ThumbPlus), 0, 2);
+        get
+        {
+            var feel = (Tuning.FeelMode)PlayerPrefs.GetInt("feel", (int)Tuning.FeelMode.Mix);
+            return feel is Tuning.FeelMode.Classic or Tuning.FeelMode.Thumb ? feel : Tuning.FeelMode.Mix;
+        }
         set => PlayerPrefs.SetInt("feel", (int)value);
     }
 

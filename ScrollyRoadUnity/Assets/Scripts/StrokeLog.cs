@@ -42,19 +42,23 @@ public static class StrokeLog
     }
 
     /// Everything as text: a summary per setting, then one line per stroke (to paste into Notes or a message).
-    public static readonly string[] FeelNames = { "Off", "Thumb", "Thumb+" };
+    public static readonly string[] FeelNames = { "Original", "Thumb", "Thumb+", "Mix" };
+
+    /// The settings shown side by side on the stroke log screen (Thumb+ is retired; its strokes stay in the export).
+    public static readonly Tuning.FeelMode[] Compared = { Tuning.FeelMode.Mix, Tuning.FeelMode.Classic, Tuning.FeelMode.Thumb };
 
     public static string Export()
     {
         var text = new System.Text.StringBuilder("UPSCROLL stroke log\n");
-        foreach (Tuning.FeelMode feel in new[] { Tuning.FeelMode.ThumbPlus, Tuning.FeelMode.Thumb, Tuning.FeelMode.Classic })
+        foreach (Tuning.FeelMode feel in new[] { Tuning.FeelMode.Mix, Tuning.FeelMode.Classic, Tuning.FeelMode.Thumb, Tuning.FeelMode.ThumbPlus })
         {
             var s = For(feel);
+            if (s.Count == 0 && feel == Tuning.FeelMode.ThumbPlus) continue;
             text.AppendLine(string.Format(CultureInfo.InvariantCulture,
                 "Feel {0}: {1} strokes, average {2:0}% of the screen (median {3:0}%), start on average {4:0}% up, {5:0}% start in the bottom half, {6:0.0} m per stroke",
                 FeelNames[(int)feel], s.Count, s.AverageLength * 100, s.MedianLength * 100, s.AverageStart * 100, s.BottomHalfShare * 100, s.MetersPerStroke));
         }
-        text.AppendLine("start,length,meters,feel (0 off, 1 thumb, 2 thumb+)");
+        text.AppendLine("start,length,meters,feel (0 original, 1 thumb, 2 thumb+, 3 mix)");
         foreach (var s in All)
             text.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0:0.###},{1:0.###},{2:0.##},{3}", s.Start, s.Length, s.Meters, (int)s.Feel));
         return text.ToString();
@@ -87,7 +91,7 @@ public static class StrokeLog
                 Start = float.Parse(f[0], CultureInfo.InvariantCulture),
                 Length = float.Parse(f[1], CultureInfo.InvariantCulture),
                 Meters = float.Parse(f[2], CultureInfo.InvariantCulture),
-                Feel = (Tuning.FeelMode)Mathf.Clamp(int.TryParse(f[3], out int feel) ? feel : 0, 0, 2),   // older logs: 1 = thumb, 0 = off
+                Feel = (Tuning.FeelMode)Mathf.Clamp(int.TryParse(f[3], out int feel) ? feel : 0, 0, 3),   // older logs: 1 = thumb, 0 = original
             });
         }
         return list;

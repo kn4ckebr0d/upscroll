@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// Alpha: the stroke log screen (Settings). Logging is off until you switch it on, so hand the phone over, switch
-/// it on, and let people play. It compares strokes per feel setting (Off, Thumb, Thumb+), shows where on the screen strokes
+/// it on, and let people play. It compares strokes per feel setting (Mix, Original, Thumb), shows where on the screen strokes
 /// start, and copies everything to the clipboard to paste somewhere.
 public partial class ScrollyGame
 {
@@ -13,7 +13,7 @@ public partial class ScrollyGame
     readonly Text[,] strokeLogCells = new Text[6, 3];
     readonly Image[,] strokeLogBars = new Image[3, 10];
 
-    /// The columns, left to right: Off, Thumb, Thumb+.
+    /// The columns, left to right: Mix, Original, Thumb.
     static float StrokeLogColumnX(int column) => 4 + column * 58;
 
     static readonly string[] StrokeLogRows = { "Strokes", "Average stroke", "Median stroke", "Start height", "Start in bottom half", "Meters per stroke" };
@@ -32,7 +32,7 @@ public partial class ScrollyGame
 
         // The table: one column per setting.
         for (int c = 0; c < 3; c++)
-            Cell(t, new Vector2(StrokeLogColumnX(c), 112), StrokeLog.FeelNames[c], 13, Ui.BrownSoft, TextAnchor.MiddleCenter, 58);
+            Cell(t, new Vector2(StrokeLogColumnX(c), 112), StrokeLog.FeelNames[(int)StrokeLog.Compared[c]], 13, Ui.BrownSoft, TextAnchor.MiddleCenter, 58);
         for (int r = 0; r < StrokeLogRows.Length; r++)
         {
             float y = 88 - r * 24;
@@ -89,7 +89,7 @@ public partial class ScrollyGame
         SetToggle(strokeLogToggle, Progress.StrokeLogOn);
         for (int c = 0; c < 3; c++)
         {
-            var s = StrokeLog.For((Tuning.FeelMode)c);
+            var s = StrokeLog.For(StrokeLog.Compared[c]);
             bool any = s.Count > 0;
             strokeLogCells[0, c].text = s.Count.ToString();
             strokeLogCells[1, c].text = any ? $"{s.AverageLength * 100:0}%" : "–";

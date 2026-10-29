@@ -295,15 +295,15 @@ public partial class ScrollyGame
         return button;
     }
 
-    /// The feel switch's pill: OFF (grey), THUMB (blue), PLUS (gold).
+    /// The feel switch's pill: MIX (gold), ORIG (grey), THUMB (blue).
     void SetFeelToggle()
     {
         if (thumbToggle == null) return;
         var (text, face, lip, ink) = Tuning.Feel switch
         {
-            Tuning.FeelMode.ThumbPlus => ("PLUS", Ui.Gold, Ui.GoldShade, Ui.OnGold),
+            Tuning.FeelMode.Mix => ("MIX", Ui.Gold, Ui.GoldShade, Ui.OnGold),
             Tuning.FeelMode.Thumb => ("THUMB", Ui.Blue, Ui.BlueShade, Color.white),
-            _ => ("OFF", Ui.Grey, Ui.GreyShade, Color.white),
+            _ => ("ORIG", Ui.Grey, Ui.GreyShade, Color.white),
         };
         thumbToggle.Price.text = text;
         thumbToggle.Price.color = ink;
@@ -345,10 +345,15 @@ public partial class ScrollyGame
         RefreshMenus();
     }
 
-    /// Alpha: the feel, Off → Thumb → Thumb+ (see Tuning.Feel).
+    /// Alpha: the feel, Mix → Original → Thumb (see Tuning.Feel).
     void CycleFeel()
     {
-        Tuning.Feel = Progress.Feel = (Tuning.FeelMode)(((int)Progress.Feel + 1) % 3);
+        Tuning.Feel = Progress.Feel = Progress.Feel switch
+        {
+            Tuning.FeelMode.Mix => Tuning.FeelMode.Classic,
+            Tuning.FeelMode.Classic => Tuning.FeelMode.Thumb,
+            _ => Tuning.FeelMode.Mix,
+        };
         Progress.Save();
         cam.orthographicSize = Tuning.ViewHeight / 2f;
         Synth.Instance.Click();
