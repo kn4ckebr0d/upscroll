@@ -48,7 +48,7 @@ public partial class ScrollyGame
             if (Progress.HintCount("turn") < 3)
             {
                 Progress.CountHint("turn");
-                ShowTip($"Climb with your other {Digit}!\nHand over hand.", 2.5f);
+                ShowTip("Climb with your other finger!\nHand over hand.", 2.5f);
             }
         }
         return 0;
@@ -78,7 +78,7 @@ public partial class ScrollyGame
                 Start = touch.startScreenPosition.y / Mathf.Max(1, Screen.height),
                 Length = (touch.startScreenPosition.y - touch.screenPosition.y) / Mathf.Max(1, Screen.height),
                 Meters = lifted.Drove,
-                Feel = Tuning.Feel,
+                Setup = StrokeLog.CurrentSetup,
             });
         if (lifted.Drove < 1f) return;
         foreach (var other in fingers.Values)

@@ -21,7 +21,7 @@ public partial class ScrollyGame
     Text nextUnlockName, nextUnlockCount;
     Cosmetic nextUnlock;
     HudButton settingsButton, stampsButton, lifeButton, continueButton, continueAdButton, declineButton, playAgainButton, doubleCoinsButton;
-    HudButton soundToggle, hapticsToggle, shakeToggle, bossTestToggle, thumbToggle, settingsDone;
+    HudButton soundToggle, hapticsToggle, shakeToggle, bossTestToggle, settingsDone;
     static Texture2D patternTexture;
     static Sprite cloudSprite;
 
@@ -175,7 +175,6 @@ public partial class ScrollyGame
         SetToggle(hapticsToggle, Haptics.Enabled);
         SetToggle(shakeToggle, Progress.ShakeOn);
         SetToggle(bossTestToggle, Progress.BossFirst);
-        SetFeelToggle();
     }
 
     // MARK: - Backdrop
@@ -261,8 +260,7 @@ public partial class ScrollyGame
         alphaTitle.raycastTarget = false;
         bossTestToggle = MakeAlphaButton(panel, new Vector2(-76, 206), "Boss next", ToggleBossTest, toggle: true);   // reach a boss planet quickly
         MakeAlphaButton(panel, new Vector2(76, 206), "New gift", ResetGiftForTest);                                // a fresh daily gift right away
-        thumbToggle = MakeAlphaButton(panel, new Vector2(-76, 150), "Feel", CycleFeel, toggle: true);   // see Tuning.Feel
-        MakeAlphaButton(panel, new Vector2(76, 150), "Stroke log", () => ShowStrokeLog(true));
+        MakeAlphaButton(panel, new Vector2(0, 150), "Stroke log", () => ShowStrokeLog(true));
         settingsDone = MakeButton(panel, Bottom, new Vector2(0, 72), new Vector2(240, 58), Ui.Blue, Ui.BlueShade, Color.white,
             () => ShowSettings(false), icon: Ui.Icon("close"));
         settingsDone.Label.text = "Done";
@@ -295,27 +293,6 @@ public partial class ScrollyGame
         return button;
     }
 
-    /// The feel switch's pill: MIX (gold), ORIG (grey), THUMB (blue).
-    void SetFeelToggle()
-    {
-        if (thumbToggle == null) return;
-        var (text, face, lip, ink) = Tuning.Feel switch
-        {
-            Tuning.FeelMode.Mix => ("MIX", Ui.Gold, Ui.GoldShade, Ui.OnGold),
-            Tuning.FeelMode.Thumb => ("THUMB", Ui.Blue, Ui.BlueShade, Color.white),
-            _ => ("ORIG", Ui.Grey, Ui.GreyShade, Color.white),
-        };
-        thumbToggle.Price.text = text;
-        thumbToggle.Price.color = ink;
-        thumbToggle.Price.fontSize = 11;
-        var pill = thumbToggle.Price.transform.parent.GetComponent<Image>();
-        pill.color = face;
-        pill.transform.parent.GetChild(0).GetComponent<Image>().color = lip;
-        var rect = (RectTransform)pill.transform.parent;
-        rect.sizeDelta = new Vector2(58, rect.sizeDelta.y);
-        rect.anchoredPosition = new Vector2(-36, 0);
-    }
-
     static void SetToggle(HudButton toggle, bool on)
     {
         if (toggle == null) return;
@@ -341,21 +318,6 @@ public partial class ScrollyGame
         Haptics.Enabled = Progress.HapticsOn = !Progress.HapticsOn;
         Progress.Save();
         Haptics.Tick(1f);
-        Synth.Instance.Click();
-        RefreshMenus();
-    }
-
-    /// Alpha: the feel, Mix → Original → Thumb (see Tuning.Feel).
-    void CycleFeel()
-    {
-        Tuning.Feel = Progress.Feel = Progress.Feel switch
-        {
-            Tuning.FeelMode.Mix => Tuning.FeelMode.Classic,
-            Tuning.FeelMode.Classic => Tuning.FeelMode.Thumb,
-            _ => Tuning.FeelMode.Mix,
-        };
-        Progress.Save();
-        cam.orthographicSize = Tuning.ViewHeight / 2f;
         Synth.Instance.Click();
         RefreshMenus();
     }

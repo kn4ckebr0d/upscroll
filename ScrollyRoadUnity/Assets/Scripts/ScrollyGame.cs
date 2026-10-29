@@ -328,7 +328,6 @@ public partial class ScrollyGame : MonoBehaviour
 
     void SetupCamera()
     {
-        Tuning.Feel = Progress.Feel;
         cam = new GameObject("Camera").AddComponent<Camera>();
         cam.gameObject.AddComponent<AudioListener>();
         cam.tag = "MainCamera";
@@ -363,7 +362,7 @@ public partial class ScrollyGame : MonoBehaviour
     {
         var ground = new GameObject("Ground").transform;
         Voxel.Box(ground, new Vector3(30, 0.4f, 16), 0x6CBF4B, new Vector3(0, -0.2f, -3), castShadows: false);
-        Voxel.Box(ground, new Vector3(30, 3, 16), 0x7A5236, new Vector3(0, -1.9f, -3), castShadows: false);
+        Voxel.Box(ground, new Vector3(30, 14, 16), 0x7A5236, new Vector3(0, -7.4f, -3), castShadows: false);   // deep: the camera looks down to here with the climber mid-screen
         foreach (var p in new[] { new Vector2(-4.6f, -2.6f), new Vector2(5.4f, -1.2f), new Vector2(-6.8f, -0.4f), new Vector2(3.4f, -4.5f) })
             BuildTree(ground, new Vector3(p.x, 0, p.y), 0x4E9A34, 0x5DB043);
         Voxel.Box(ground, new Vector3(0.6f, 0.4f, 0.6f), 0x9E9E9E, new Vector3(-2.8f, 0.2f, -3.2f));
@@ -696,7 +695,7 @@ public partial class ScrollyGame : MonoBehaviour
                 }
             if (interrupted) return;
         }
-        float metersPerPixel = Tuning.ViewHeight / Mathf.Max(1, Screen.height) * Tuning.PullGain;
+        float metersPerPixel = Tuning.ViewHeight / Mathf.Max(1, Screen.height);
         foreach (var touch in Touch.activeTouches)
         {
             if (touch.phase == TouchPhase.Began)

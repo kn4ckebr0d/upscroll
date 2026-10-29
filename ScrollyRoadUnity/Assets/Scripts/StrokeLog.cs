@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 /// Alpha playtest tool: remembers the last strokes people made while climbing (where on the screen they started,
-/// how long they were, how far they climbed), split by the feel setting, so the settings can be compared.
+/// how long they were, how far they climbed), with the setup they were made with, so setups can be compared.
 /// Stored on the device only.
 public static class StrokeLog
 {
@@ -13,7 +13,7 @@ public static class StrokeLog
         public float Start;    // where the stroke began, 0 = bottom of the screen, 1 = top
         public float Length;   // how far down it went, in screen heights
         public float Meters;   // how far it climbed
-        public Tuning.FeelMode Feel;   // the feel setting at the time
+        public int Setup;      // the camera setup at the time (see SetupNames)
     }
 
     public class Stats
@@ -42,31 +42,38 @@ public static class StrokeLog
     }
 
     /// Everything as text: a summary per setting, then one line per stroke (to paste into Notes or a message).
-    public static readonly string[] FeelNames = { "Original", "Thumb", "Thumb+", "Mix" };
+    /// The setups strokes were logged with during the playtests; the last one is the game as it is now.
+    public static readonly string[] SetupNames =
+    {
+        "Original (18 m view, climber 30% up)",
+        "Thumb (23 m view, climber 42% up)",
+        "Thumb+ (24 m view, 1.25x pull, climber 47% up)",
+        "Mix (18 m view, climber 36% up)",
+        "Now (18 m view, climber 50% up)",
+    };
 
-    /// The settings shown side by side on the stroke log screen (Thumb+ is retired; its strokes stay in the export).
-    public static readonly Tuning.FeelMode[] Compared = { Tuning.FeelMode.Mix, Tuning.FeelMode.Classic, Tuning.FeelMode.Thumb };
+    public const int CurrentSetup = 4;
 
     public static string Export()
     {
         var text = new System.Text.StringBuilder("UPSCROLL stroke log\n");
-        foreach (Tuning.FeelMode feel in new[] { Tuning.FeelMode.Mix, Tuning.FeelMode.Classic, Tuning.FeelMode.Thumb, Tuning.FeelMode.ThumbPlus })
+        for (int setup = CurrentSetup; setup >= 0; setup--)
         {
-            var s = For(feel);
-            if (s.Count == 0 && feel == Tuning.FeelMode.ThumbPlus) continue;
+            var s = For(setup);
+            if (s.Count == 0) continue;
             text.AppendLine(string.Format(CultureInfo.InvariantCulture,
-                "Feel {0}: {1} strokes, average {2:0}% of the screen (median {3:0}%), start on average {4:0}% up, {5:0}% start in the bottom half, {6:0.0} m per stroke",
-                FeelNames[(int)feel], s.Count, s.AverageLength * 100, s.MedianLength * 100, s.AverageStart * 100, s.BottomHalfShare * 100, s.MetersPerStroke));
+                "{0}: {1} strokes, average {2:0}% of the screen (median {3:0}%), start on average {4:0}% up, {5:0}% start in the bottom half, {6:0.0} m per stroke",
+                SetupNames[setup], s.Count, s.AverageLength * 100, s.MedianLength * 100, s.AverageStart * 100, s.BottomHalfShare * 100, s.MetersPerStroke));
         }
-        text.AppendLine("start,length,meters,feel (0 original, 1 thumb, 2 thumb+, 3 mix)");
+        text.AppendLine("start,length,meters,setup (0 original, 1 thumb, 2 thumb+, 3 mix, 4 now)");
         foreach (var s in All)
-            text.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0:0.###},{1:0.###},{2:0.##},{3}", s.Start, s.Length, s.Meters, (int)s.Feel));
+            text.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0:0.###},{1:0.###},{2:0.##},{3}", s.Start, s.Length, s.Meters, s.Setup));
         return text.ToString();
     }
 
-    public static Stats For(Tuning.FeelMode feel)
+    public static Stats For(int setup)
     {
-        var list = All.Where(s => s.Feel == feel).ToList();
+        var list = All.Where(s => s.Setup == setup).ToList();
         var stats = new Stats { Count = list.Count };
         if (list.Count == 0) return stats;
         var lengths = list.Select(s => s.Length).OrderBy(l => l).ToList();
@@ -91,12 +98,12 @@ public static class StrokeLog
                 Start = float.Parse(f[0], CultureInfo.InvariantCulture),
                 Length = float.Parse(f[1], CultureInfo.InvariantCulture),
                 Meters = float.Parse(f[2], CultureInfo.InvariantCulture),
-                Feel = (Tuning.FeelMode)Mathf.Clamp(int.TryParse(f[3], out int feel) ? feel : 0, 0, 3),   // older logs: 1 = thumb, 0 = original
+                Setup = Mathf.Clamp(int.TryParse(f[3], out int setup) ? setup : 0, 0, CurrentSetup),
             });
         }
         return list;
     }
 
     static void Save() => PlayerPrefs.SetString("strokeLog", string.Join(";", All.Select(s =>
-        string.Format(CultureInfo.InvariantCulture, "{0:0.###},{1:0.###},{2:0.##},{3}", s.Start, s.Length, s.Meters, (int)s.Feel))));
+        string.Format(CultureInfo.InvariantCulture, "{0:0.###},{1:0.###},{2:0.##},{3}", s.Start, s.Length, s.Meters, s.Setup))));
 }

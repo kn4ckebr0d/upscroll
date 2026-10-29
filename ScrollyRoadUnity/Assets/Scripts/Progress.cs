@@ -212,17 +212,6 @@ public static class Progress
         set => PlayerPrefs.SetString("boostUntil", value.Ticks.ToString());
     }
 
-    /// Alpha: the feel switch (see Tuning.Feel). Mix unless chosen otherwise (Thumb+ is retired and becomes Mix).
-    public static Tuning.FeelMode Feel
-    {
-        get
-        {
-            var feel = (Tuning.FeelMode)PlayerPrefs.GetInt("feel", (int)Tuning.FeelMode.Mix);
-            return feel is Tuning.FeelMode.Classic or Tuning.FeelMode.Thumb ? feel : Tuning.FeelMode.Mix;
-        }
-        set => PlayerPrefs.SetInt("feel", (int)value);
-    }
-
     /// Alpha: whether strokes go into the stroke log (off by default, so the designer's own strokes stay out).
     public static bool StrokeLogOn
     {

@@ -243,7 +243,7 @@ public partial class ScrollyGame
     IEnumerator HandOffHint()
     {
         Progress.CountHint("handoff");
-        ShowCaption($"Put your other {Digit} down\nbefore you lift the first", CaptionAtBottom);
+        ShowCaption("Put your other finger down\nbefore you lift the first", CaptionAtBottom);
         for (int i = 0; i < 2; i++)
         {
             yield return HandOffDemo();
