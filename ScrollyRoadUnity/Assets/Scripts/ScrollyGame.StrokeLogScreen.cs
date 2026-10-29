@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// Alpha: the stroke log screen (Settings). Logging is off until you switch it on, so hand the phone over, switch
-/// it on, and let people play. It compares strokes with thumb feel on and off, shows where on the screen strokes
+/// it on, and let people play. It compares strokes per feel setting (Off, Thumb, Thumb+), shows where on the screen strokes
 /// start, and copies everything to the clipboard to paste somewhere.
 public partial class ScrollyGame
 {
@@ -10,8 +10,11 @@ public partial class ScrollyGame
     RectTransform strokeLogCard;
     HudButton strokeLogToggle;
     Text strokeLogStatus;
-    readonly Text[,] strokeLogCells = new Text[6, 2];
-    readonly Image[,] strokeLogBars = new Image[2, 10];
+    readonly Text[,] strokeLogCells = new Text[6, 3];
+    readonly Image[,] strokeLogBars = new Image[3, 10];
+
+    /// The columns, left to right: Off, Thumb, Thumb+.
+    static float StrokeLogColumnX(int column) => 4 + column * 58;
 
     static readonly string[] StrokeLogRows = { "Strokes", "Average stroke", "Median stroke", "Start height", "Start in bottom half", "Meters per stroke" };
 
@@ -28,23 +31,23 @@ public partial class ScrollyGame
         strokeLogToggle = MakeToggle(t, 160, "Logging", Ui.Icon("hand"), ToggleStrokeLogging);
 
         // The table: one column per setting.
-        for (int c = 0; c < 2; c++)
-            Cell(t, new Vector2(16 + c * 84, 112), c == 0 ? "Thumbs on" : "Thumbs off", 13, Ui.BrownSoft, TextAnchor.MiddleCenter);
+        for (int c = 0; c < 3; c++)
+            Cell(t, new Vector2(StrokeLogColumnX(c), 112), StrokeLog.FeelNames[c], 13, Ui.BrownSoft, TextAnchor.MiddleCenter, 58);
         for (int r = 0; r < StrokeLogRows.Length; r++)
         {
             float y = 88 - r * 24;
-            Cell(t, new Vector2(-96, y), StrokeLogRows[r], 13, Ui.Brown, TextAnchor.MiddleLeft, 124);
-            for (int c = 0; c < 2; c++) strokeLogCells[r, c] = Cell(t, new Vector2(16 + c * 84, y), "", 15, Ui.Brown, TextAnchor.MiddleCenter);
+            Cell(t, new Vector2(-104, y), StrokeLogRows[r], 12, Ui.Brown, TextAnchor.MiddleLeft, 116);
+            for (int c = 0; c < 3; c++) strokeLogCells[r, c] = Cell(t, new Vector2(StrokeLogColumnX(c), y), "", 14, Ui.Brown, TextAnchor.MiddleCenter, 58);
         }
 
         // Where strokes start: a phone per setting, with a bar for every tenth of the screen.
-        Cell(t, new Vector2(-96, -122), "Where strokes\nstart on the\nscreen", 13, Ui.Brown, TextAnchor.MiddleLeft, 124).lineSpacing = 1.05f;
-        for (int c = 0; c < 2; c++)
+        Cell(t, new Vector2(-104, -122), "Where strokes\nstart on the\nscreen", 12, Ui.Brown, TextAnchor.MiddleLeft, 116).lineSpacing = 1.05f;
+        for (int c = 0; c < 3; c++)
         {
-            var phone = Ui.Box(t, Center, new Vector2(16 + c * 84, -122), new Vector2(62, 124), Voxel.Hex(0x3A3740), Voxel.Hex(0x1D1B22), 12, 0);
+            var phone = Ui.Box(t, Center, new Vector2(StrokeLogColumnX(c), -122), new Vector2(50, 110), Voxel.Hex(0x3A3740), Voxel.Hex(0x1D1B22), 10, 0);
             for (int b = 0; b < 10; b++)
             {
-                var bar = Ui.Rect(phone.transform, "Bar", new Vector2(0, 0), new Vector2(6, 9 + b * 11), new Vector2(50, 9));
+                var bar = Ui.Rect(phone.transform, "Bar", new Vector2(0, 0), new Vector2(5, 8 + b * 10), new Vector2(40, 8));
                 bar.pivot = new Vector2(0, 0.5f);
                 strokeLogBars[c, b] = Ui.Rounded(bar, Ui.Gold, 3);
             }
@@ -84,16 +87,16 @@ public partial class ScrollyGame
     void RefreshStrokeLog()
     {
         SetToggle(strokeLogToggle, Progress.StrokeLogOn);
-        for (int c = 0; c < 2; c++)
+        for (int c = 0; c < 3; c++)
         {
-            var s = StrokeLog.For(c == 0);
+            var s = StrokeLog.For((Tuning.FeelMode)c);
             bool any = s.Count > 0;
             strokeLogCells[0, c].text = s.Count.ToString();
             strokeLogCells[1, c].text = any ? $"{s.AverageLength * 100:0}%" : "–";
             strokeLogCells[2, c].text = any ? $"{s.MedianLength * 100:0}%" : "–";
-            strokeLogCells[3, c].text = any ? $"{s.AverageStart * 100:0}% up" : "–";
+            strokeLogCells[3, c].text = any ? $"{s.AverageStart * 100:0}%" : "–";
             strokeLogCells[4, c].text = any ? $"{s.BottomHalfShare * 100:0}%" : "–";
-            strokeLogCells[5, c].text = any ? $"{s.MetersPerStroke:0.0} m" : "–";
+            strokeLogCells[5, c].text = any ? $"{s.MetersPerStroke:0.0}m" : "–";
             int most = Mathf.Max(1, Mathf.Max(s.StartBins));
             for (int b = 0; b < 10; b++)
                 strokeLogBars[c, b].rectTransform.localScale = new Vector3(Mathf.Max(0.02f, s.StartBins[b] / (float)most), 1, 1);

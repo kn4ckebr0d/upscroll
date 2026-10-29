@@ -212,11 +212,11 @@ public static class Progress
         set => PlayerPrefs.SetString("boostUntil", value.Ticks.ToString());
     }
 
-    /// Alpha: the thumb tuning switch (see Tuning.ThumbTuning).
-    public static bool ThumbTuning
+    /// Alpha: the feel switch (see Tuning.Feel). Thumb+ unless chosen otherwise.
+    public static Tuning.FeelMode Feel
     {
-        get => PlayerPrefs.GetInt("thumbTuning", 1) == 1;
-        set => PlayerPrefs.SetInt("thumbTuning", value ? 1 : 0);
+        get => (Tuning.FeelMode)Mathf.Clamp(PlayerPrefs.GetInt("feel", (int)Tuning.FeelMode.ThumbPlus), 0, 2);
+        set => PlayerPrefs.SetInt("feel", (int)value);
     }
 
     /// Alpha: whether strokes go into the stroke log (off by default, so the designer's own strokes stay out).

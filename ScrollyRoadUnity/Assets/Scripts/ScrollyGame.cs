@@ -328,7 +328,7 @@ public partial class ScrollyGame : MonoBehaviour
 
     void SetupCamera()
     {
-        Tuning.ThumbTuning = Progress.ThumbTuning;
+        Tuning.Feel = Progress.Feel;
         cam = new GameObject("Camera").AddComponent<Camera>();
         cam.gameObject.AddComponent<AudioListener>();
         cam.tag = "MainCamera";

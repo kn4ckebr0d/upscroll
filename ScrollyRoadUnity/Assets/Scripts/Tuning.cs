@@ -92,14 +92,18 @@ public static class Tuning
     public const int ToneSteps = 12;                     // top note, reached just before the next checkpoint
 
     // Camera: tilted orthographic, Crossy Road style.
-    // Thumb tuning (alpha switch, on by default): most people climb with their thumbs in the bottom half of the
-    // screen, so the view shows more wall (every stroke climbs further, still 1:1 under the thumb) and the
-    // climber sits higher, out from under the thumbs.
-    public static bool ThumbTuning = true;
-    public static float ViewHeight => ThumbTuning ? 23f : 18f;                 // meters visible vertically
-    public static float ClimberScreenFraction => ThumbTuning ? 0.42f : 0.3f;  // where the climber sits on screen while climbing, from the bottom
-    public const float TitleClimberScreenFraction = 0.3f;                     // on the title screen (under the logo)
-    public static float PullGain => ThumbTuning ? 1f : 1f;                     // meters per meter of thumb travel (above 1.3 starts to feel slippery)
+    // Feel (alpha switch, for playtests): most people climb with their thumbs in the bottom half of the screen,
+    // in strokes of about a quarter of the screen (long finger strokes are about half). Thumb shows more wall, so
+    // every stroke climbs further while the wall still moves 1:1 under the thumb, and puts the climber higher,
+    // out from under the thumbs. Thumb+ adds a little more view and pull (the wall moves 1.25x the thumb) so a
+    // thumb stroke climbs about what a long stroke did (7 to 8 m).
+    public enum FeelMode { Classic = 0, Thumb = 1, ThumbPlus = 2 }
+    public static FeelMode Feel = FeelMode.ThumbPlus;
+    public static bool ThumbTuning => Feel != FeelMode.Classic;
+    public static float ViewHeight => Feel switch { FeelMode.ThumbPlus => 24f, FeelMode.Thumb => 23f, _ => 18f };                    // meters visible vertically
+    public static float ClimberScreenFraction => Feel switch { FeelMode.ThumbPlus => 0.47f, FeelMode.Thumb => 0.42f, _ => 0.3f };   // where the climber sits while climbing, from the bottom
+    public const float TitleClimberScreenFraction = 0.3f;                                                                           // on the title screen (under the logo)
+    public static float PullGain => Feel == FeelMode.ThumbPlus ? 1.25f : 1f;                                                       // the wall's travel per thumb travel (above 1.3 starts to feel slippery)
     public const float CameraPitch = 18f;                // degrees looking down
     public const float CameraYaw = 22f;                  // degrees looking in from the right
     public const float CameraDistance = 20f;
